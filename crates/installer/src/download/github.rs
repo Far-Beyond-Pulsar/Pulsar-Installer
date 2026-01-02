@@ -4,6 +4,7 @@ use crate::error::{InstallerError, Result};
 use serde::{Deserialize, Serialize};
 use gpui::http_client::{HttpClient, http, AsyncBody};
 use reqwest_client::ReqwestClient;
+use futures::AsyncReadExt;
 
 /// GitHub release information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -71,8 +72,9 @@ impl GitHubReleases {
             )));
         }
 
-        let body = response.into_body();
-        let bytes = body.into_bytes().await
+        let mut body = response.into_body();
+        let mut bytes = Vec::new();
+        body.read_to_end(&mut bytes).await
             .map_err(|e| InstallerError::Download(format!("Failed to get response body: {}", e)))?;
 
         let release: GitHubRelease = serde_json::from_slice(&bytes)
@@ -107,8 +109,9 @@ impl GitHubReleases {
             )));
         }
 
-        let body = response.into_body();
-        let bytes = body.into_bytes().await
+        let mut body = response.into_body();
+        let mut bytes = Vec::new();
+        body.read_to_end(&mut bytes).await
             .map_err(|e| InstallerError::Download(format!("Failed to get response body: {}", e)))?;
 
         let releases: Vec<GitHubRelease> = serde_json::from_slice(&bytes)
