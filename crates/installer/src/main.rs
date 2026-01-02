@@ -2,9 +2,10 @@
 //!
 //! Downloads and installs Pulsar engine from GitHub releases.
 
-use gpui::{App, AppContext, Bounds, Size, WindowBounds, WindowKind, WindowOptions, px, size};
+use gpui::{prelude::*, *};
 use pulsar_installer::ui::InstallerView;
 use gpui_component::Root;
+use gpui::Focusable;
 
 fn main() {
     // Initialize logging
@@ -18,16 +19,19 @@ fn main() {
     tracing::info!("Starting Pulsar Installer");
 
     // Create and run the GPUI application
-    App::new().run(|cx: &mut AppContext| {
+    let app = Application::new();
+
+    app.run(move |cx| {
         // Initialize GPUI components
         gpui_component::init(cx);
+        cx.activate(true);
 
         let window_size = size(px(800.0), px(600.0));
         let window_bounds = Bounds::centered(None, window_size, cx);
 
         let options = WindowOptions {
             window_bounds: Some(WindowBounds::Windowed(window_bounds)),
-            titlebar: Some(gpui::TitlebarOptions {
+            titlebar: Some(TitlebarOptions {
                 title: Some("Pulsar Installer".into()),
                 appears_transparent: false,
                 traffic_light_position: None,

@@ -1,12 +1,15 @@
+//! Main installer view following Story crate patterns.
+
 use gpui::{
     App, AppContext, Context, Entity, Focusable, IntoElement, ParentElement, Render, Styled,
-    Window, div, px,
+    StatefulInteractiveElement as _, Window, div, px,
 };
 use gpui_component::{
-    ActiveTheme, Sizable,
+    ActiveTheme,
     button::{Button, ButtonVariants as _},
     checkbox::Checkbox,
     progress::Progress,
+    scroll::ScrollableElement as _,
     h_flex, v_flex,
 };
 use crate::download::GitHubReleases;
@@ -64,7 +67,7 @@ impl InstallerView {
         cx.notify();
 
         // Spawn async task to fetch releases
-        cx.spawn(|this, mut cx| async move {
+        cx.spawn(async move |this, cx| {
             let github = GitHubReleases::new("Far-Beyond-Pulsar", "Pulsar-Native");
 
             match github.get_all_releases().await {
@@ -78,7 +81,7 @@ impl InstallerView {
                         })
                         .collect();
 
-                    this.update(&mut cx, |this, window, cx| {
+                    this.update(cx, |this, cx| {
                         this.releases = release_infos;
                         this.loading_releases = false;
                         cx.notify();
@@ -87,7 +90,7 @@ impl InstallerView {
                 }
                 Err(e) => {
                     tracing::error!("Failed to fetch releases: {}", e);
-                    this.update(&mut cx, |this, window, cx| {
+                    this.update(cx, |this, cx| {
                         this.loading_releases = false;
                         cx.notify();
                     })
@@ -111,11 +114,11 @@ impl InstallerView {
         cx.notify();
 
         // Simulate installation progress
-        cx.spawn(|this, mut cx| async move {
+        cx.spawn(async move |this, cx| {
             for i in 0..=100 {
                 smol::Timer::after(std::time::Duration::from_millis(50)).await;
 
-                this.update(&mut cx, |this, window, cx| {
+                this.update(cx, |this, cx| {
                     this.install_progress = i as f32;
                     this.install_message = format!("Installing... {}%", i);
                     cx.notify();
@@ -124,8 +127,9 @@ impl InstallerView {
             }
 
             // Navigate to complete page
-            this.update(&mut cx, |this, window, cx| {
-                this.navigate_to(Page::Complete, window, cx);
+            this.update(cx, |this, cx| {
+                this.current_page = Page::Complete;
+                cx.notify();
             })
             .ok();
         })
@@ -142,10 +146,10 @@ impl Focusable for InstallerView {
 impl Render for InstallerView {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         match self.current_page {
-            Page::Welcome => self.render_welcome(cx),
-            Page::VersionSelection => self.render_version_selection(cx),
-            Page::Installing => self.render_installing(cx),
-            Page::Complete => self.render_complete(cx),
+            Page::Welcome => self.render_welcome(cx).into_any_element(),
+            Page::VersionSelection => self.render_version_selection(cx).into_any_element(),
+            Page::Installing => self.render_installing(cx).into_any_element(),
+            Page::Complete => self.render_complete(cx).into_any_element(),
         }
     }
 }
@@ -251,12 +255,12 @@ impl InstallerView {
                 v_flex()
                     .flex_1()
                     .gap_2()
-                    .overflow_y_scroll()
+                    .overflow_y_scrollbar()
                     .children(
                         self.releases
                             .iter()
                             .enumerate()
-                            .map(|(idx, release)| {
+                            .map(|(idx, release): (usize, &ReleaseInfo)| {
                                 let selected = release.selected;
                                 let release_name = release.name.clone();
                                 let tag_name = release.tag_name.clone();
@@ -277,7 +281,7 @@ impl InstallerView {
                                             .child(
                                                 Checkbox::new(format!("release-{}", idx))
                                                     .checked(selected)
-                                                    .on_click(cx.listener(move |this, checked: &bool, window, cx| {
+                                                    .on_click(cx.listener(move |this, _checked: &bool, window, cx| {
                                                         this.toggle_release(idx, window, cx);
                                                     })),
                                             )
