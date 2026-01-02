@@ -114,21 +114,108 @@ impl InstallerView {
         self.install_message = "Starting installation...".to_string();
         cx.notify();
 
-        // Simulate installation progress
-        cx.spawn(async move |this, cx| {
-            for i in 0..=100 {
-                smol::Timer::after(std::time::Duration::from_millis(50)).await;
+        // Get selected releases
+        let selected_releases: Vec<GitHubRelease> = self.releases.iter()
+            .filter(|r| r.selected)
+            .map(|r| GitHubRelease {
+                tag_name: r.tag_name.clone(),
+                name: r.name.clone(),
+                body: String::new(),
+                assets: Vec::new(),
+                prerelease: false,
+            })
+            .collect();
 
+        if selected_releases.is_empty() {
+            self.install_message = "No versions selected".to_string();
+            cx.notify();
+            return;
+        }
+
+        let total_releases = selected_releases.len();
+
+        // Start installation
+        cx.spawn(async move |this, cx| {
+            let download_manager = HttpDownloadManager::new();
+            let github = GitHubReleases::new("Far-Beyond-Pulsar", "Pulsar-Native");
+
+            // Create download directory
+            let download_dir = std::env::temp_dir().join("pulsar-installer");
+            if let Err(e) = std::fs::create_dir_all(&download_dir) {
                 this.update(cx, |this, cx| {
-                    this.install_progress = i as f32;
-                    this.install_message = format!("Installing... {}%", i);
+                    this.install_message = format!("Failed to create download directory: {}", e);
                     cx.notify();
                 })
                 .ok();
+                return;
+            }
+
+            for (idx, selected_release) in selected_releases.iter().enumerate() {
+                let release_num = idx + 1;
+
+                // Update status
+                this.update(cx, |this, cx| {
+                    this.install_message = format!(
+                        "Downloading release {} of {}: {}",
+                        release_num, total_releases, selected_release.name
+                    );
+                    cx.notify();
+                })
+                .ok();
+
+                // Get full release details
+                let full_release = match github.get_all_releases().await {
+                    Ok(releases) => releases.into_iter()
+                        .find(|r| r.tag_name == selected_release.tag_name),
+                    Err(e) => {
+                        this.update(cx, |this, cx| {
+                            this.install_message = format!("Failed to fetch release details: {}", e);
+                            cx.notify();
+                        })
+                        .ok();
+                        continue;
+                    }
+                };
+
+                if let Some(release) = full_release {
+                    // Find platform-appropriate asset
+                    if let Some(asset) = release.assets.first() {
+                        let file_path = download_dir.join(&asset.name);
+
+                        // Download the asset
+                        let url = asset.browser_download_url.clone();
+                        let result = download_manager
+                            .download(&url, &file_path, Box::new(move |progress| {
+                                // Progress callback - could update UI here
+                            }))
+                            .await;
+
+                        match result {
+                            Ok(_) => {
+                                let base_progress = (idx as f32 / total_releases as f32) * 100.0;
+                                this.update(cx, |this, cx| {
+                                    this.install_progress = base_progress + (100.0 / total_releases as f32);
+                                    this.install_message = format!("Downloaded: {}", asset.name);
+                                    cx.notify();
+                                })
+                                .ok();
+                            }
+                            Err(e) => {
+                                this.update(cx, |this, cx| {
+                                    this.install_message = format!("Download failed: {}", e);
+                                    cx.notify();
+                                })
+                                .ok();
+                                continue;
+                            }
+                        }
+                    }
+                }
             }
 
             // Navigate to complete page
             this.update(cx, |this, cx| {
+                this.install_progress = 100.0;
                 this.current_page = Page::Complete;
                 cx.notify();
             })
