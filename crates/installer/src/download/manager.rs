@@ -13,6 +13,12 @@ pub struct HttpDownloadManager {
     client: ReqwestClient,
 }
 
+impl Clone for HttpDownloadManager {
+    fn clone(&self) -> Self {
+        Self::new()
+    }
+}
+
 impl HttpDownloadManager {
     /// Create a new HTTP download manager.
     pub fn new() -> Self {

@@ -13,9 +13,8 @@ use gpui_component::{
     h_flex, v_flex,
 };
 use crate::download::{GitHubReleases, HttpDownloadManager, GitHubRelease};
-use crate::traits::{DownloadManager as _,  Progress as ProgressTrait};
+use crate::traits::DownloadManager as _;
 use std::path::PathBuf;
-use gpui_component::Disableable;
 use gpui::prelude::FluentBuilder;
 
 /// Page state for the installer
@@ -193,8 +192,6 @@ impl InstallerView {
             return;
         }
 
-        let total_releases = selected_releases.len();
-
         // Start installation
         cx.spawn(async move |this, cx| {
             let download_manager = HttpDownloadManager::new();
@@ -219,9 +216,9 @@ impl InstallerView {
                 match github.get_all_releases().await {
                     Ok(releases) => {
                         if let Some(full_release) = releases.into_iter().find(|r| r.tag_name == selected_release.tag_name) {
-                            if let Some(asset) = full_release.assets.first() {
+                            if let Some(asset) = full_release.assets.first().cloned() {
                                 total_size += asset.size;
-                                releases_with_assets.push((full_release, asset.clone()));
+                                releases_with_assets.push((full_release, asset));
                             }
                         }
                     }
@@ -254,32 +251,69 @@ impl InstallerView {
                 .ok();
 
                 let file_path = download_dir.join(&asset.name);
+                let file_path_for_install = file_path.clone();
                 let url = asset.browser_download_url.clone();
                 let base_downloaded = downloaded_bytes;
 
-                // Download with progress tracking
-                let result = download_manager
-                    .download(&url, &file_path, Box::new(move |prog| {
-                        let current_bytes = base_downloaded + prog.processed_bytes;
+                // Create shared progress state
+                let progress_state = std::sync::Arc::new(std::sync::Mutex::new((0u64, 0.0f32)));
+                let progress_state_clone = progress_state.clone();
+
+                // Spawn download task in background and poll progress
+                let download_task = {
+                    let download_manager = download_manager.clone();
+                    smol::spawn(async move {
+                        download_manager
+                            .download(&url, &file_path, Box::new(move |prog| {
+                                // Update shared progress state
+                                *progress_state_clone.lock().unwrap() = (
+                                    prog.processed_bytes,
+                                    prog.current,
+                                );
+                            }))
+                            .await
+                    })
+                };
+
+                // Poll progress and update UI
+                let mut last_update = std::time::Instant::now();
+                loop {
+                    // Check if download is complete
+                    if download_task.is_finished() {
+                        break;
+                    }
+
+                    // Update UI at 100ms intervals
+                    if last_update.elapsed() >= std::time::Duration::from_millis(100) {
+                        let (processed, file_percent) = *progress_state.lock().unwrap();
+                        let current_bytes = base_downloaded + processed;
                         let overall_progress = if total_size > 0 {
                             (current_bytes as f32 / total_size as f32) * 100.0
                         } else {
                             0.0
                         };
 
-                        // Update UI with current progress
+                        let message = format!(
+                            "Downloading {} ({:.1}%)",
+                            asset_name,
+                            file_percent
+                        );
+
                         this.update(cx, |this, cx| {
                             this.install_progress = overall_progress;
-                            this.install_message = format!(
-                                "Downloading {} ({:.1}%)",
-                                asset_name,
-                                prog.current
-                            );
+                            this.install_message = message;
                             cx.notify();
                         })
                         .ok();
-                    }))
-                    .await;
+
+                        last_update = std::time::Instant::now();
+                    }
+
+                    smol::Timer::after(std::time::Duration::from_millis(50)).await;
+                }
+
+                // Get final result
+                let result = download_task.await;
 
                 match result {
                     Ok(_) => {
@@ -292,7 +326,7 @@ impl InstallerView {
                         })
                         .ok();
 
-                        let install_result = Self::install_release(&file_path, &release.tag_name).await;
+                        let install_result = Self::install_release(&file_path_for_install, &release.tag_name).await;
 
                         match install_result {
                             Ok(_install_path) => {
@@ -404,18 +438,22 @@ impl InstallerView {
     #[cfg(windows)]
     fn create_windows_shortcut(install_dir: &PathBuf, version: &str) -> crate::error::Result<()> {
         use std::fs;
-        use std::io::Write;
+        use walkdir::WalkDir;
 
-        // Find the main executable
-        let exe_path = std::fs::read_dir(install_dir)
-            .map_err(|e| crate::error::InstallerError::Io(e))?
+        // Find the main executable (search recursively)
+        let exe_path = WalkDir::new(install_dir)
+            .max_depth(3)
+            .into_iter()
             .filter_map(|entry| entry.ok())
             .find(|entry| {
                 entry.path().extension().and_then(|s| s.to_str()) == Some("exe")
+                    && entry.file_type().is_file()
             })
-            .map(|entry| entry.path());
+            .map(|entry| entry.path().to_path_buf());
 
         if let Some(exe_path) = exe_path {
+            tracing::info!("Found executable at: {}", exe_path.display());
+
             // Create start menu shortcut directory
             let start_menu = dirs::data_dir()
                 .ok_or_else(|| crate::error::InstallerError::Other("Could not find start menu".to_string()))?
@@ -424,15 +462,20 @@ impl InstallerView {
             fs::create_dir_all(&start_menu)
                 .map_err(|e| crate::error::InstallerError::Io(e))?;
 
-            // Create a simple .bat file as a launcher (proper .lnk would require winapi)
-            let shortcut_path = start_menu.join(format!("Pulsar {}.bat", version));
-            let mut file = fs::File::create(&shortcut_path)
-                .map_err(|e| crate::error::InstallerError::Io(e))?;
+            tracing::info!("Creating shortcut in: {}", start_menu.display());
 
-            writeln!(file, "@echo off")
-                .map_err(|e| crate::error::InstallerError::Io(e))?;
-            writeln!(file, "start \"\" \"{}\"", exe_path.display())
-                .map_err(|e| crate::error::InstallerError::Io(e))?;
+            // Create a proper Windows .lnk shortcut
+            let shortcut_path = start_menu.join(format!("Pulsar {}.lnk", version));
+
+            let shortcut = mslnk::ShellLink::new(&exe_path)
+                .map_err(|e| crate::error::InstallerError::Other(format!("Failed to create shortcut: {}", e)))?;
+
+            shortcut.create_lnk(&shortcut_path)
+                .map_err(|e| crate::error::InstallerError::Other(format!("Failed to save shortcut: {}", e)))?;
+
+            tracing::info!("Created shortcut at: {}", shortcut_path.display());
+        } else {
+            tracing::warn!("No executable found in: {}", install_dir.display());
         }
 
         Ok(())
