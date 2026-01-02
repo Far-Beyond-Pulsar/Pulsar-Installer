@@ -13,7 +13,6 @@ pub use create_shortcuts::CreateShortcutsStep;
 pub use finalize::FinalizeStep;
 
 use crate::traits::InstallStep;
-use crate::Result;
 use std::sync::Arc;
 
 /// A collection of installation steps that execute sequentially.

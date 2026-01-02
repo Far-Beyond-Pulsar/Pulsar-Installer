@@ -5596,7 +5596,6 @@ dependencies = [
  "smol",
  "tar",
  "tempfile",
- "thiserror 2.0.14",
  "tokio",
  "tracing",
  "tracing-subscriber",

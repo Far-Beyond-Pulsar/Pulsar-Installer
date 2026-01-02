@@ -5,7 +5,7 @@ use crate::Result;
 use async_trait::async_trait;
 use flate2::read::GzDecoder;
 use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tar::Archive;
 
 /// Installation step that extracts archive files.

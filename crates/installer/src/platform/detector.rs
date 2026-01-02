@@ -1,9 +1,8 @@
 //! Base platform detector with common functionality.
 
 use crate::error::{InstallerError, Result};
-use crate::traits::{SystemDetector, SystemRequirements};
-use async_trait::async_trait;
-use std::path::{Path, PathBuf};
+use crate::traits::SystemRequirements;
+use std::path::Path;
 
 /// Base platform detector with common functionality.
 pub struct PlatformDetector {
@@ -41,7 +40,7 @@ impl PlatformDetector {
     }
 
     /// Get available disk space at path.
-    pub async fn get_available_space_impl(path: &Path) -> Result<u64> {
+    pub async fn get_available_space_impl(_path: &Path) -> Result<u64> {
         // This is a simplified version - real implementation would use platform-specific APIs
         #[cfg(unix)]
         {

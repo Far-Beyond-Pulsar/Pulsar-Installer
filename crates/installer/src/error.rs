@@ -6,18 +6,15 @@ use std::path::PathBuf;
 pub type Result<T> = std::result::Result<T, InstallerError>;
 
 /// Errors that can occur during installation.
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug)]
 pub enum InstallerError {
     /// I/O error occurred
-    #[error("I/O error: {0}")]
-    Io(#[from] std::io::Error),
+    Io(std::io::Error),
 
     /// Download failed
-    #[error("Download failed: {0}")]
     Download(String),
 
     /// Checksum verification failed
-    #[error("Checksum verification failed for {file}: expected {expected}, got {actual}")]
     ChecksumMismatch {
         file: String,
         expected: String,
@@ -25,30 +22,64 @@ pub enum InstallerError {
     },
 
     /// Insufficient disk space
-    #[error("Insufficient disk space: need {needed} bytes, available {available} bytes")]
     InsufficientSpace { needed: u64, available: u64 },
 
     /// System requirements not met
-    #[error("System requirements not met: {0}")]
     RequirementsNotMet(String),
 
     /// Installation path is invalid
-    #[error("Invalid installation path: {0}")]
     InvalidPath(PathBuf),
 
     /// Component installation failed
-    #[error("Failed to install component '{component}': {reason}")]
     ComponentFailed { component: String, reason: String },
 
     /// Configuration error
-    #[error("Configuration error: {0}")]
     Config(String),
 
     /// Platform not supported
-    #[error("Platform not supported: {0}")]
     UnsupportedPlatform(String),
 
+    /// JSON error
+    Json(String),
+
     /// Generic error
-    #[error("{0}")]
     Other(String),
+}
+
+impl std::fmt::Display for InstallerError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Io(e) => write!(f, "I/O error: {}", e),
+            Self::Download(s) => write!(f, "Download failed: {}", s),
+            Self::ChecksumMismatch { file, expected, actual } => {
+                write!(f, "Checksum mismatch for {}: expected {}, got {}", file, expected, actual)
+            }
+            Self::InsufficientSpace { needed, available } => {
+                write!(f, "Insufficient disk space: need {} bytes, available {} bytes", needed, available)
+            }
+            Self::RequirementsNotMet(s) => write!(f, "System requirements not met: {}", s),
+            Self::InvalidPath(p) => write!(f, "Invalid installation path: {}", p.display()),
+            Self::ComponentFailed { component, reason } => {
+                write!(f, "Failed to install component '{}': {}", component, reason)
+            }
+            Self::Config(s) => write!(f, "Configuration error: {}", s),
+            Self::UnsupportedPlatform(s) => write!(f, "Platform not supported: {}", s),
+            Self::Json(s) => write!(f, "JSON error: {}", s),
+            Self::Other(s) => write!(f, "{}", s),
+        }
+    }
+}
+
+impl std::error::Error for InstallerError {}
+
+impl From<std::io::Error> for InstallerError {
+    fn from(e: std::io::Error) -> Self {
+        Self::Io(e)
+    }
+}
+
+impl From<serde_json::Error> for InstallerError {
+    fn from(e: serde_json::Error) -> Self {
+        Self::Json(e.to_string())
+    }
 }

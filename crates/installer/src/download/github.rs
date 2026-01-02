@@ -67,9 +67,12 @@ impl GitHubReleases {
             )));
         }
 
-        let release: GitHubRelease = response
-            .json()
+        let body = response
+            .text()
             .await
+            .map_err(|e| InstallerError::Download(format!("Failed to get response body: {}", e)))?;
+
+        let release: GitHubRelease = serde_json::from_str(&body)
             .map_err(|e| InstallerError::Download(format!("Failed to parse release JSON: {}", e)))?;
 
         Ok(release)
@@ -96,9 +99,12 @@ impl GitHubReleases {
             )));
         }
 
-        let releases: Vec<GitHubRelease> = response
-            .json()
+        let body = response
+            .text()
             .await
+            .map_err(|e| InstallerError::Download(format!("Failed to get response body: {}", e)))?;
+
+        let releases: Vec<GitHubRelease> = serde_json::from_str(&body)
             .map_err(|e| InstallerError::Download(format!("Failed to parse releases JSON: {}", e)))?;
 
         Ok(releases)
