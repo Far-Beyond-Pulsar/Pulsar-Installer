@@ -1,0 +1,11 @@
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\tokio_socks-d91c9688e7aae1e8.d: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\error.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\io\mod.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\io\tokio.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\mod.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\socks4.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\socks5.rs
+
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\libtokio_socks-d91c9688e7aae1e8.rmeta: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\error.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\io\mod.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\io\tokio.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\mod.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\socks4.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\socks5.rs
+
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\lib.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\error.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\io\mod.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\io\tokio.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\mod.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\socks4.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-socks-0.5.2\src\tcp\socks5.rs:

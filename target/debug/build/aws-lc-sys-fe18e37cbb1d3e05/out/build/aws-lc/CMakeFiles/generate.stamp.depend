@@ -1,0 +1,18 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CheckCCompilerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CheckIncludeFile.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CheckIncludeFileCXX.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CheckTypeSize.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/Internal/CheckCompilerFlag.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/Internal/CheckFlagCommonConfig.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/Internal/CheckSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/TestBigEndian.cmake
+C:/Users/redst/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-lc-sys-0.32.2/aws-lc/CMakeLists.txt
+C:/Users/redst/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-lc-sys-0.32.2/aws-lc/cmake/JoinPaths.cmake
+C:/Users/redst/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-lc-sys-0.32.2/aws-lc/cmake/go.cmake
+C:/Users/redst/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-lc-sys-0.32.2/aws-lc/include/openssl/base.h.in
+C:/Users/redst/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-lc-sys-0.32.2/aws-lc/include/openssl/opensslv.h.in
+C:/Users/redst/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-lc-sys-0.32.2/aws-lc/sources.cmake
+C:\Program Files\CMake\share\cmake-4.1\Templates\MSBuild\nasm.props.in

@@ -1,0 +1,13 @@
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\tree_sitter-0aba8c5a7f69d6a6.d: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\ffi.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\util.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\./README.md C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\./bindings.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\../src/parser.h C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\build\tree-sitter-6f0b9db4616d1b60\out/stdlib-symbols.txt
+
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\libtree_sitter-0aba8c5a7f69d6a6.rmeta: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\ffi.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\util.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\./README.md C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\./bindings.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\../src/parser.h C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\build\tree-sitter-6f0b9db4616d1b60\out/stdlib-symbols.txt
+
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\lib.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\ffi.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\util.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\./README.md:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\./bindings.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-0.25.8\binding_rust\../src/parser.h:
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\build\tree-sitter-6f0b9db4616d1b60\out/stdlib-symbols.txt:
+
+# env-dep:OUT_DIR=C:\\Users\\redst\\OneDrive\\Documents\\GitHub\\Pulsar-Installer\\target\\debug\\build\\tree-sitter-6f0b9db4616d1b60\\out

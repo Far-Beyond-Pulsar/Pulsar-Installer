@@ -1,0 +1,11 @@
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\slotmap-75a6e4170d450d49.d: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\basic.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\dense.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\hop.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\secondary.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\sparse_secondary.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\util.rs
+
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\libslotmap-75a6e4170d450d49.rmeta: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\basic.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\dense.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\hop.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\secondary.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\sparse_secondary.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\util.rs
+
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\lib.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\basic.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\dense.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\hop.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\secondary.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\sparse_secondary.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\slotmap-1.0.7\src\util.rs:

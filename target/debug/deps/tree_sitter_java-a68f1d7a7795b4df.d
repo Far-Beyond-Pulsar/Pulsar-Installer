@@ -1,0 +1,8 @@
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\tree_sitter_java-a68f1d7a7795b4df.d: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../src/node-types.json C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../queries/highlights.scm C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../queries/tags.scm
+
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\libtree_sitter_java-a68f1d7a7795b4df.rmeta: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../src/node-types.json C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../queries/highlights.scm C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../queries/tags.scm
+
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\lib.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../src/node-types.json:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../queries/highlights.scm:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tree-sitter-java-0.23.5\bindings\rust\../../queries/tags.scm:

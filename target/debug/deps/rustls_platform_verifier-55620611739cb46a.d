@@ -1,0 +1,8 @@
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\rustls_platform_verifier-55620611739cb46a.d: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\verification\mod.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\verification\windows.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\../README.md
+
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\librustls_platform_verifier-55620611739cb46a.rmeta: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\verification\mod.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\verification\windows.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\../README.md
+
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\lib.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\verification\mod.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\verification\windows.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rustls-platform-verifier-0.5.3\src\../README.md:

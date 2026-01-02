@@ -1,0 +1,27 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeASMCompiler.cmake.in
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeASMInformation.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeASM_NASMInformation.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeCompilerIdDetection.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineASMCompiler.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineASM_NASMCompiler.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompiler.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDetermineCompilerId.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeFindBinUtils.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeParseArguments.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeTestASMCompiler.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeTestASM_NASMCompiler.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CheckCSourceCompiles.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CheckIncludeFile.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/CheckLibraryExists.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/FindThreads.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/Internal/CMakeASMLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/Internal/CMakeASM_NASMLinkerInformation.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/Internal/CMakeInspectASMLinker.cmake
+C:/Program Files/CMake/share/cmake-4.1/Modules/Internal/CMakeInspectASM_NASMLinker.cmake
+C:/Users/redst/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-lc-sys-0.32.2/aws-lc/crypto/CMakeLists.txt
+C:/Users/redst/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/aws-lc-sys-0.32.2/aws-lc/crypto/cmake/crypto-config.cmake
+C:/Users/redst/OneDrive/Documents/GitHub/Pulsar-Installer/target/debug/build/aws-lc-sys-fe18e37cbb1d3e05/out/build/CMakeFiles/4.1.0-rc1/CMakeASM_NASMCompiler.cmake
+C:\Program Files\CMake\share\cmake-4.1\Templates\MSBuild\nasm.props.in

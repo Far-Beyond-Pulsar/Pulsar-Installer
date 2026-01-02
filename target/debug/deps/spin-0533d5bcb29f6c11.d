@@ -1,0 +1,12 @@
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\spin-0533d5bcb29f6c11.d: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\barrier.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\lazy.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\mutex.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\mutex\spin.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\once.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\relax.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\rwlock.rs
+
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\libspin-0533d5bcb29f6c11.rmeta: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\barrier.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\lazy.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\mutex.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\mutex\spin.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\once.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\relax.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\rwlock.rs
+
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\lib.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\barrier.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\lazy.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\mutex.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\mutex\spin.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\once.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\relax.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spin-0.10.0\src\rwlock.rs:

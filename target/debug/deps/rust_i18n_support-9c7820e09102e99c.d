@@ -1,0 +1,10 @@
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\rust_i18n_support-9c7820e09102e99c.d: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\atomic_str.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\backend.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\config.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\cow_str.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\minify_key.rs
+
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\librust_i18n_support-9c7820e09102e99c.rmeta: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\atomic_str.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\backend.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\config.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\cow_str.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\minify_key.rs
+
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\lib.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\atomic_str.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\backend.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\config.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\cow_str.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\rust-i18n-support-3.1.5\src\minify_key.rs:

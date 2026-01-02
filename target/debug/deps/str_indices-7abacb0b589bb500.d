@@ -1,0 +1,11 @@
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\str_indices-7abacb0b589bb500.d: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\byte_chunk.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\chars.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines_crlf.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines_lf.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\utf16.rs
+
+C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\deps\libstr_indices-7abacb0b589bb500.rmeta: C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lib.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\byte_chunk.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\chars.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines_crlf.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines_lf.rs C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\utf16.rs
+
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lib.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\byte_chunk.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\chars.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines_crlf.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\lines_lf.rs:
+C:\Users\redst\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\str_indices-0.4.4\src\utf16.rs:
