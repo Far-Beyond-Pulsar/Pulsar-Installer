@@ -3,22 +3,21 @@
 use crate::error::{InstallerError, Result};
 use crate::traits::{DownloadManager, Progress, ProgressCallback};
 use async_trait::async_trait;
-use futures::StreamExt;
+use futures::AsyncWriteExt;
+use gpui::http_client::{HttpClient, http, AsyncBody};
+use reqwest_client::ReqwestClient;
 use std::path::Path;
 
 /// HTTP-based download manager.
 pub struct HttpDownloadManager {
-    client: reqwest::Client,
+    client: ReqwestClient,
 }
 
 impl HttpDownloadManager {
     /// Create a new HTTP download manager.
     pub fn new() -> Self {
         Self {
-            client: reqwest::Client::builder()
-                .user_agent("Pulsar-Installer/1.0")
-                .build()
-                .unwrap(),
+            client: ReqwestClient::user_agent("Pulsar-Installer/1.0").unwrap(),
         }
     }
 
@@ -30,10 +29,15 @@ impl HttpDownloadManager {
         progress: ProgressCallback,
     ) -> Result<()> {
         // Send HTTP request
+        let request = http::Request::builder()
+            .method("GET")
+            .uri(url)
+            .body(AsyncBody::default())
+            .map_err(|e| InstallerError::Download(format!("Failed to build request: {}", e)))?;
+
         let response = self
             .client
-            .get(url)
-            .send()
+            .send(request)
             .await
             .map_err(|e| InstallerError::Download(e.to_string()))?;
 
@@ -45,26 +49,36 @@ impl HttpDownloadManager {
         }
 
         // Get total file size
-        let total_size = response.content_length().unwrap_or(0);
+        let total_size = response.headers().get("content-length")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(0);
 
         // Create destination file
-        let mut file = tokio::fs::File::create(destination)
+        let mut file = smol::fs::File::create(destination)
             .await
             .map_err(|e| InstallerError::Io(e))?;
 
         // Download with progress tracking
         let mut downloaded: u64 = 0;
-        let mut stream = response.bytes_stream();
+        let mut body = response.into_body();
+        let mut buffer = vec![0u8; 8192];
 
-        while let Some(chunk) = stream.next().await {
-            let chunk = chunk.map_err(|e| InstallerError::Download(e.to_string()))?;
+        loop {
+            use futures::AsyncReadExt;
+            let n = body.read(&mut buffer)
+                .await
+                .map_err(|e| InstallerError::Download(format!("Failed to read response: {}", e)))?;
 
-            use tokio::io::AsyncWriteExt;
-            file.write_all(&chunk)
+            if n == 0 {
+                break;
+            }
+
+            file.write_all(&buffer[..n])
                 .await
                 .map_err(|e| InstallerError::Io(e))?;
 
-            downloaded += chunk.len() as u64;
+            downloaded += n as u64;
 
             let percent = if total_size > 0 {
                 (downloaded as f32 / total_size as f32) * 100.0
@@ -78,6 +92,8 @@ impl HttpDownloadManager {
                     .with_processed_bytes(downloaded),
             );
         }
+
+        file.flush().await.map_err(|e| InstallerError::Io(e))?;
 
         Ok(())
     }
@@ -118,15 +134,22 @@ impl DownloadManager for HttpDownloadManager {
     }
 
     async fn get_file_size(&self, url: &str) -> Result<u64> {
+        let request = http::Request::builder()
+            .method("HEAD")
+            .uri(url)
+            .body(AsyncBody::default())
+            .map_err(|e| InstallerError::Download(format!("Failed to build request: {}", e)))?;
+
         let response = self
             .client
-            .head(url)
-            .send()
+            .send(request)
             .await
             .map_err(|e| InstallerError::Download(e.to_string()))?;
 
-        response
-            .content_length()
+        response.headers()
+            .get("content-length")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse::<u64>().ok())
             .ok_or_else(|| InstallerError::Download("Content-Length header missing".to_string()))
     }
 }

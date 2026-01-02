@@ -11,7 +11,9 @@ use gpui_component::{
     scroll::ScrollableElement as _,
     h_flex, v_flex,
 };
-use crate::download::GitHubReleases;
+use crate::download::{GitHubReleases, HttpDownloadManager, GitHubRelease};
+use crate::traits::{DownloadManager as _,  Progress as ProgressTrait};
+use std::path::PathBuf;
 
 /// Page state for the installer
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -217,94 +219,99 @@ impl InstallerView {
                     .text_color(cx.theme().muted_foreground)
                     .child("Choose one or more Pulsar engine versions from GitHub releases"),
             )
-            .child(if self.loading_releases {
-                v_flex()
+            .child(
+                div()
                     .flex_1()
-                    .items_center()
-                    .justify_center()
-                    .child(
-                        div()
-                            .text_base()
-                            .text_color(cx.theme().muted_foreground)
-                            .child("Loading releases from GitHub..."),
-                    )
-                    .into_any_element()
-            } else if self.releases.is_empty() {
-                v_flex()
-                    .flex_1()
-                    .items_center()
-                    .justify_center()
-                    .gap_3()
-                    .child(
-                        div()
-                            .text_base()
-                            .text_color(cx.theme().muted_foreground)
-                            .child("No releases found or failed to load"),
-                    )
-                    .child(
-                        Button::new("retry-btn")
-                            .outline()
-                            .label("Retry")
-                            .on_click(cx.listener(|this, _, window, cx| {
-                                this.fetch_releases(window, cx);
-                            })),
-                    )
-                    .into_any_element()
-            } else {
-                v_flex()
-                    .flex_1()
-                    .gap_2()
-                    .overflow_y_scrollbar()
-                    .children(
-                        self.releases
-                            .iter()
-                            .enumerate()
-                            .map(|(idx, release): (usize, &ReleaseInfo)| {
-                                let selected = release.selected;
-                                let release_name = release.name.clone();
-                                let tag_name = release.tag_name.clone();
-
+                    .overflow_hidden()
+                    .child(if self.loading_releases {
+                        v_flex()
+                            .size_full()
+                            .items_center()
+                            .justify_center()
+                            .child(
                                 div()
-                                    .p_3()
-                                    .border_1()
-                                    .border_color(if selected {
-                                        cx.theme().primary
-                                    } else {
-                                        cx.theme().border
-                                    })
-                                    .rounded(px(6.0))
-                                    .child(
-                                        h_flex()
-                                            .items_center()
-                                            .gap_3()
+                                    .text_base()
+                                    .text_color(cx.theme().muted_foreground)
+                                    .child("Loading releases from GitHub..."),
+                            )
+                            .into_any_element()
+                    } else if self.releases.is_empty() {
+                        v_flex()
+                            .size_full()
+                            .items_center()
+                            .justify_center()
+                            .gap_3()
+                            .child(
+                                div()
+                                    .text_base()
+                                    .text_color(cx.theme().muted_foreground)
+                                    .child("No releases found or failed to load"),
+                            )
+                            .child(
+                                Button::new("retry-btn")
+                                    .outline()
+                                    .label("Retry")
+                                    .on_click(cx.listener(|this, _, window, cx| {
+                                        this.fetch_releases(window, cx);
+                                    })),
+                            )
+                            .into_any_element()
+                    } else {
+                        v_flex()
+                            .size_full()
+                            .gap_2()
+                            .overflow_y_scrollbar()
+                            .children(
+                                self.releases
+                                    .iter()
+                                    .enumerate()
+                                    .map(|(idx, release): (usize, &ReleaseInfo)| {
+                                        let selected = release.selected;
+                                        let release_name = release.name.clone();
+                                        let tag_name = release.tag_name.clone();
+
+                                        div()
+                                            .p_3()
+                                            .border_1()
+                                            .border_color(if selected {
+                                                cx.theme().primary
+                                            } else {
+                                                cx.theme().border
+                                            })
+                                            .rounded(px(6.0))
                                             .child(
-                                                Checkbox::new(format!("release-{}", idx))
-                                                    .checked(selected)
-                                                    .on_click(cx.listener(move |this, _checked: &bool, window, cx| {
-                                                        this.toggle_release(idx, window, cx);
-                                                    })),
-                                            )
-                                            .child(
-                                                v_flex()
-                                                    .gap_1()
+                                                h_flex()
+                                                    .items_center()
+                                                    .gap_3()
                                                     .child(
-                                                        div()
-                                                            .text_sm()
-                                                            .text_color(cx.theme().foreground)
-                                                            .child(release_name),
+                                                        Checkbox::new(format!("release-{}", idx))
+                                                            .checked(selected)
+                                                            .on_click(cx.listener(move |this, _checked: &bool, window, cx| {
+                                                                this.toggle_release(idx, window, cx);
+                                                            })),
                                                     )
                                                     .child(
-                                                        div()
-                                                            .text_xs()
-                                                            .text_color(cx.theme().muted_foreground)
-                                                            .child(tag_name),
+                                                        v_flex()
+                                                            .gap_1()
+                                                            .child(
+                                                                div()
+                                                                    .text_sm()
+                                                                    .text_color(cx.theme().foreground)
+                                                                    .child(release_name),
+                                                            )
+                                                            .child(
+                                                                div()
+                                                                    .text_xs()
+                                                                    .text_color(cx.theme().muted_foreground)
+                                                                    .child(tag_name),
+                                                            ),
                                                     ),
-                                            ),
-                                    )
-                            }),
-                    )
-                    .into_any_element()
-            })
+                                            )
+                                    }),
+                            )
+                            .into_any_element()
+                    })
+            )
             .child(
                 h_flex()
                     .justify_between()

@@ -15,7 +15,7 @@ impl FileVerifier {
 
     /// Calculate SHA256 checksum of a file.
     pub async fn calculate_sha256(&self, path: &Path) -> Result<String> {
-        let data = tokio::fs::read(path).await?;
+        let data = smol::fs::read(path).await?;
         let hash = Sha256::digest(&data);
         Ok(hex::encode(hash))
     }
