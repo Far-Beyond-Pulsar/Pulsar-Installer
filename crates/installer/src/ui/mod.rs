@@ -1,20 +1,5 @@
-//! Installer user interface components.
-//!
-//! This module contains all UI views for the installer application,
-//! built using the GPUI component library.
+//! Installer UI module.
 
-mod welcome;
-mod license;
-mod path_selection;
-mod components;
-mod installation;
-mod complete;
-mod app;
+mod installer_view;
 
-pub use welcome::WelcomeView;
-pub use license::LicenseView;
-pub use path_selection::PathSelectionView;
-pub use components::ComponentsView;
-pub use installation::InstallationView;
-pub use complete::CompleteView;
-pub use app::{InstallerApp, InstallerPage};
+pub use installer_view::InstallerView;

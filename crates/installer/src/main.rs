@@ -1,9 +1,10 @@
-//! Pulsar Game Engine Installer
+//! Pulsar Engine Installer
 //!
-//! A modern, cross-platform installer built with GPUI.
+//! Downloads and installs Pulsar engine from GitHub releases.
 
-use gpui::{App, AppContext, size, px};
-use pulsar_installer::ui::InstallerApp;
+use gpui::{App, AppContext, Bounds, Size, WindowBounds, WindowKind, WindowOptions, px, size};
+use pulsar_installer::ui::InstallerView;
+use gpui_component::Root;
 
 fn main() {
     // Initialize logging
@@ -21,36 +22,37 @@ fn main() {
         // Initialize GPUI components
         gpui_component::init(cx);
 
-        // Set default window bounds
-        let window_size = size(px(900.0), px(700.0));
+        let window_size = size(px(800.0), px(600.0));
+        let window_bounds = Bounds::centered(None, window_size, cx);
 
-        // Create the main installer window
-        cx.open_window(
-            gpui::WindowOptions {
-                window_bounds: Some(gpui::WindowBounds::Windowed(gpui::Bounds {
-                    origin: gpui::Point::default(),
-                    size: window_size,
-                })),
-                titlebar: Some(gpui::TitlebarOptions {
-                    title: Some("Pulsar Installer".into()),
-                    appears_transparent: false,
-                    traffic_light_position: None,
-                }),
-                window_background: gpui::WindowBackgroundAppearance::default(),
-                focus: true,
-                show: true,
-                kind: gpui::WindowKind::Normal,
-                is_movable: true,
-                fullscreen: None,
-                window_min_size: Some(size(px(800.0), px(600.0))),
-                ..Default::default()
-            },
-            |window, cx| {
-                // Create the installer app view
-                let app = InstallerApp::new(cx);
-                window.focus(&app.focus_handle(cx), cx);
-                app
-            },
-        );
+        let options = WindowOptions {
+            window_bounds: Some(WindowBounds::Windowed(window_bounds)),
+            titlebar: Some(gpui::TitlebarOptions {
+                title: Some("Pulsar Installer".into()),
+                appears_transparent: false,
+                traffic_light_position: None,
+            }),
+            window_min_size: Some(Size {
+                width: px(600.0),
+                height: px(480.0),
+            }),
+            kind: WindowKind::Normal,
+            ..Default::default()
+        };
+
+        cx.open_window(options, |window, cx| {
+            // Create the installer view
+            let installer_view = InstallerView::view(window, cx);
+
+            // Focus the installer view
+            let focus_handle = installer_view.focus_handle(cx);
+            window.defer(cx, move |window, cx| {
+                focus_handle.focus(window, cx);
+            });
+
+            // Wrap in Root following the story crate pattern
+            cx.new(|cx| Root::new(installer_view, window, cx))
+        })
+        .expect("Failed to open installer window");
     });
 }
