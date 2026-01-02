@@ -2,6 +2,8 @@
 
 use crate::error::{InstallerError, Result};
 use serde::{Deserialize, Serialize};
+use gpui::http_client::{HttpClient, http, AsyncBody};
+use reqwest_client::ReqwestClient;
 
 /// GitHub release information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,7 +25,7 @@ pub struct GitHubAsset {
 
 /// GitHub releases client.
 pub struct GitHubReleases {
-    client: reqwest::Client,
+    client: ReqwestClient,
     owner: String,
     repo: String,
 }
@@ -37,10 +39,7 @@ impl GitHubReleases {
     /// * `repo` - Repository name (e.g., "pulsar")
     pub fn new(owner: impl Into<String>, repo: impl Into<String>) -> Self {
         Self {
-            client: reqwest::Client::builder()
-                .user_agent("Pulsar-Installer/1.0")
-                .build()
-                .unwrap(),
+            client: ReqwestClient::user_agent("Pulsar-Installer/1.0").unwrap(),
             owner: owner.into(),
             repo: repo.into(),
         }
@@ -53,10 +52,15 @@ impl GitHubReleases {
             self.owner, self.repo
         );
 
+        let request = http::Request::builder()
+            .method("GET")
+            .uri(&url)
+            .body(AsyncBody::default())
+            .map_err(|e| InstallerError::Download(format!("Failed to build request: {}", e)))?;
+
         let response = self
             .client
-            .get(&url)
-            .send()
+            .send(request)
             .await
             .map_err(|e| InstallerError::Download(e.to_string()))?;
 
@@ -67,12 +71,11 @@ impl GitHubReleases {
             )));
         }
 
-        let body = response
-            .text()
-            .await
+        let body = response.into_body();
+        let bytes = body.into_bytes().await
             .map_err(|e| InstallerError::Download(format!("Failed to get response body: {}", e)))?;
 
-        let release: GitHubRelease = serde_json::from_str(&body)
+        let release: GitHubRelease = serde_json::from_slice(&bytes)
             .map_err(|e| InstallerError::Download(format!("Failed to parse release JSON: {}", e)))?;
 
         Ok(release)
@@ -85,10 +88,15 @@ impl GitHubReleases {
             self.owner, self.repo
         );
 
+        let request = http::Request::builder()
+            .method("GET")
+            .uri(&url)
+            .body(AsyncBody::default())
+            .map_err(|e| InstallerError::Download(format!("Failed to build request: {}", e)))?;
+
         let response = self
             .client
-            .get(&url)
-            .send()
+            .send(request)
             .await
             .map_err(|e| InstallerError::Download(e.to_string()))?;
 
@@ -99,12 +107,11 @@ impl GitHubReleases {
             )));
         }
 
-        let body = response
-            .text()
-            .await
+        let body = response.into_body();
+        let bytes = body.into_bytes().await
             .map_err(|e| InstallerError::Download(format!("Failed to get response body: {}", e)))?;
 
-        let releases: Vec<GitHubRelease> = serde_json::from_str(&body)
+        let releases: Vec<GitHubRelease> = serde_json::from_slice(&bytes)
             .map_err(|e| InstallerError::Download(format!("Failed to parse releases JSON: {}", e)))?;
 
         Ok(releases)

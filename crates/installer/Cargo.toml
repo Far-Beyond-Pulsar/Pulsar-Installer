@@ -15,6 +15,7 @@ serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 smol.workspace = true
+reqwest_client = { path = "../reqwest_client" }
 
 # Installer-specific dependencies
 async-trait = "0.1"
@@ -27,8 +28,6 @@ tempfile = "3.8"
 walkdir = "2.5"
 futures = "0.3"
 async-channel = "2.3"
-reqwest.workspace = true
-tokio = { version = "1.35", features = ["full"] }
 chrono = "0.4"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
