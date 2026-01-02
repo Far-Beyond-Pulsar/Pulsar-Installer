@@ -273,7 +273,7 @@ impl InstallerView {
                             this.install_message = format!(
                                 "Downloading {} ({:.1}%)",
                                 asset_name,
-                                prog.percent
+                                prog.current
                             );
                             cx.notify();
                         })
