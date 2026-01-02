@@ -1,150 +1,308 @@
-# GPUI Component
+# Pulsar Installer
 
-[![Build Status](https://github.com/longbridge/gpui-component/actions/workflows/ci.yml/badge.svg)](https://github.com/longbridge/gpui-component/actions/workflows/ci.yml) [![Docs](https://docs.rs/gpui-component/badge.svg)](https://docs.rs/gpui-component/) [![Crates.io](https://img.shields.io/crates/v/gpui-component.svg)](https://crates.io/crates/gpui-component)
-
-UI components for building fantastic desktop applications using [GPUI](https://gpui.rs).
+A modern, cross-platform installer for the Pulsar Game Engine, built with GPUI and Rust.
 
 ## Features
 
-- **Richness**: 60+ cross-platform desktop UI components.
-- **Native**: Inspired by macOS and Windows controls, combined with shadcn/ui design for a modern experience.
-- **Ease of Use**: Stateless `RenderOnce` components, simple and user-friendly.
-- **Customizable**: Built-in `Theme` and `ThemeColor`, supporting multi-theme and variable-based configurations.
-- **Versatile**: Supports sizes like `xs`, `sm`, `md`, and `lg`.
-- **Flexible Layout**: Dock layout for panel arrangements, resizing, and freeform (Tiles) layouts.
-- **High Performance**: Virtualized Table and List components for smooth large-data rendering.
-- **Content Rendering**: Native support for Markdown and simple HTML.
-- **Charting**: Built-in charts for visualizing your data.
-- **Editor**: High performance code editor (support up to 200K lines) with LSP (diagnostics, completion, hover, etc).
-- **Syntax Highlighting**: Syntax highlighting for editor and markdown components using Tree Sitter.
+- **🎨 Beautiful UI**: Modern, native-looking interface built with GPUI component library
+- **🌍 Cross-Platform**: Runs on Windows, macOS, and Linux
+- **📦 Modular Architecture**: Trait-based design for easy customization and extension
+- **📊 Progress Tracking**: Real-time installation progress with detailed feedback
+- **☁️ GitHub Integration**: Automatically fetches latest releases from GitHub
+- **🔒 Verification**: SHA256 checksum validation for downloaded files
+- **🔄 Rollback Support**: Automatic cleanup on installation failure
+- **⚡ Async Operations**: Non-blocking downloads and installation
 
-## Showcase
+## Architecture
 
-Here is the first application: [Longbridge Pro](https://longbridge.com/desktop), built using GPUI Component.
+The installer is built around a modular, trait-based architecture that makes it easy to customize and extend.
 
-<img width="1763" alt="Image" src="https://github.com/user-attachments/assets/e1ecb9c3-2dd3-431e-bd97-5a819c30e551" />
+### Core Traits
+
+#### `InstallStep`
+Defines individual installation steps that can be executed sequentially:
+```rust
+pub trait InstallStep: Send + Sync {
+    fn name(&self) -> &str;
+    fn description(&self) -> &str;
+    async fn execute(&self, progress: ProgressCallback) -> Result<()>;
+    async fn rollback(&self) -> Result<()>;
+}
+```
+
+#### `SystemDetector`
+Detects system information and validates requirements:
+```rust
+pub trait SystemDetector: Send + Sync {
+    fn os_name(&self) -> &str;
+    fn architecture(&self) -> &str;
+    async fn available_space(&self, path: &Path) -> Result<u64>;
+    async fn check_requirements(&self, requirements: &SystemRequirements) -> Result<()>;
+    fn default_install_path(&self) -> PathBuf;
+}
+```
+
+#### `DownloadManager`
+Handles file downloads with progress tracking:
+```rust
+pub trait DownloadManager: Send + Sync {
+    async fn download(&self, url: &str, destination: &Path, progress: ProgressCallback) -> Result<()>;
+    async fn download_with_verification(&self, url: &str, destination: &Path,
+                                       expected_checksum: &str, progress: ProgressCallback) -> Result<()>;
+}
+```
+
+#### `ComponentInstaller`
+Manages installation of individual components:
+```rust
+pub trait ComponentInstaller: Send + Sync {
+    fn id(&self) -> &str;
+    fn name(&self) -> &str;
+    fn size_bytes(&self) -> u64;
+    async fn install(&self, install_path: &Path, progress: ProgressCallback) -> Result<()>;
+}
+```
+
+### Module Structure
+
+```
+crates/installer/
+├── src/
+│   ├── lib.rs              # Main library entry point
+│   ├── main.rs             # Binary entry point
+│   ├── error.rs            # Error types
+│   ├── traits.rs           # Core trait definitions
+│   ├── config.rs           # Configuration management
+│   ├── steps/              # Pre-built installation steps
+│   │   ├── mod.rs
+│   │   ├── check_requirements.rs
+│   │   ├── create_directories.rs
+│   │   ├── extract_files.rs
+│   │   ├── create_shortcuts.rs
+│   │   └── finalize.rs
+│   ├── platform/           # Platform-specific implementations
+│   │   ├── mod.rs
+│   │   ├── detector.rs
+│   │   ├── windows.rs
+│   │   ├── macos.rs
+│   │   └── linux.rs
+│   ├── download/           # Download management
+│   │   ├── mod.rs
+│   │   ├── manager.rs
+│   │   ├── verifier.rs
+│   │   └── github.rs       # GitHub releases integration
+│   └── ui/                 # User interface
+│       ├── mod.rs
+│       ├── app.rs          # Main application
+│       ├── welcome.rs
+│       ├── license.rs
+│       ├── path_selection.rs
+│       ├── components.rs
+│       ├── installation.rs
+│       └── complete.rs
+```
 
 ## Usage
 
-```toml
-gpui = "0.2.2"
-gpui-component = "0.4.0"
+### Building the Installer
+
+```bash
+# Build in release mode
+cargo build --release -p pulsar-installer
+
+# Run the installer
+./target/release/pulsar-installer
 ```
 
-### Basic Example
+### Customizing the Installer
 
-```rs
-use gpui::*;
-use gpui_component::{button::*, *};
+The installer is designed to be easily customizable. Here are some common customization scenarios:
 
-pub struct HelloWorld;
-impl Render for HelloWorld {
-    fn render(&mut self, _: &mut Window, _: &mut Context<Self>) -> impl IntoElement {
-        div()
-            .v_flex()
-            .gap_2()
-            .size_full()
-            .items_center()
-            .justify_center()
-            .child("Hello, World!")
-            .child(
-                Button::new("ok")
-                    .primary()
-                    .label("Let's Go!")
-                    .on_click(|_, _, _| println!("Clicked!")),
-            )
+#### Adding a Custom Installation Step
+
+```rust
+use pulsar_installer::traits::{InstallStep, ProgressCallback};
+use async_trait::async_trait;
+
+struct MyCustomStep {
+    // Your fields here
+}
+
+#[async_trait]
+impl InstallStep for MyCustomStep {
+    fn name(&self) -> &str {
+        "My Custom Step"
+    }
+
+    fn description(&self) -> &str {
+        "Doing something custom"
+    }
+
+    async fn execute(&self, progress: ProgressCallback) -> Result<()> {
+        // Your custom installation logic here
+        progress(Progress::new(50.0));
+        // ...
+        Ok(())
     }
 }
+```
 
-fn main() {
-    let app = Application::new();
+#### Customizing the GitHub Repository
 
-    app.run(move |cx| {
-        // This must be called before using any GPUI Component features.
-        gpui_component::init(cx);
+The installer fetches binaries from GitHub releases. To change the repository:
 
-        cx.spawn(async move |cx| {
-            cx.open_window(WindowOptions::default(), |window, cx| {
-                let view = cx.new(|_| HelloWorld);
-                // This first level on the window, should be a Root.
-                cx.new(|cx| Root::new(view, window, cx))
-            })?;
+```rust
+use pulsar_installer::download::GitHubReleases;
 
-            Ok::<_, anyhow::Error>(())
-        })
-        .detach();
-    });
+let releases = GitHubReleases::new("your-org", "your-repo");
+let binary = releases.find_platform_binary().await?;
+```
+
+#### Binary Naming Convention
+
+The installer expects binaries in GitHub releases to follow this naming pattern:
+
+```
+pulsar-{os}-{arch}.{ext}
+```
+
+Where:
+- `{os}` is `windows`, `macos`, or `linux`
+- `{arch}` is `x86_64`, `aarch64`, etc.
+- `{ext}` is `exe` for Windows, `tar.gz` for Unix systems
+
+Examples:
+- `pulsar-windows-x86_64.exe`
+- `pulsar-macos-aarch64.tar.gz`
+- `pulsar-linux-x86_64.tar.gz`
+
+#### Adding Custom UI Pages
+
+To add a new page to the installer:
+
+1. Create a new view in `src/ui/`:
+
+```rust
+use gpui::*;
+use gpui_component::*;
+
+pub struct MyCustomView {
+    // Your state here
+}
+
+impl RenderOnce for MyCustomView {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        v_flex()
+            .child(div().child("My Custom Page"))
+            // Your UI here
+    }
 }
 ```
 
-### Icons
+2. Add it to the `InstallerPage` enum in `src/ui/app.rs`:
 
-GPUI Component has an `Icon` element, but it does not include SVG files by default.
+```rust
+pub enum InstallerPage {
+    Welcome,
+    License,
+    MyCustomPage,  // Add your page here
+    // ...
+}
+```
 
-The example uses [Lucide](https://lucide.dev) icons, but you can use any icons you like. Just name the SVG files as defined in [IconName](https://github.com/longbridge/gpui-component/blob/main/crates/ui/src/icon.rs#L86). You can add any icons you need to your project.
+3. Handle it in the `render_page` method.
+
+## Installation Steps
+
+The default installation process includes these steps:
+
+1. **Check System Requirements**: Verifies disk space, OS version, and architecture
+2. **Create Directories**: Sets up the installation directory structure
+3. **Download Components**: Fetches selected components from GitHub releases
+4. **Extract Files**: Unpacks downloaded archives
+5. **Create Shortcuts**: Adds desktop and start menu shortcuts (optional)
+6. **Finalize Installation**: Configures PATH and writes installation metadata
+
+## Configuration
+
+The installer uses `InstallerConfig` to manage settings:
+
+```rust
+pub struct InstallerConfig {
+    pub install_path: PathBuf,
+    pub selected_components: Vec<String>,
+    pub create_desktop_shortcut: bool,
+    pub create_start_menu_shortcut: bool,
+    pub add_to_path: bool,
+    pub requirements: SystemRequirements,
+}
+```
+
+## Error Handling
+
+All errors are handled through the `InstallerError` enum:
+
+```rust
+pub enum InstallerError {
+    Io(std::io::Error),
+    Download(String),
+    ChecksumMismatch { file: String, expected: String, actual: String },
+    InsufficientSpace { needed: u64, available: u64 },
+    RequirementsNotMet(String),
+    InvalidPath(PathBuf),
+    ComponentFailed { component: String, reason: String },
+    Config(String),
+    UnsupportedPlatform(String),
+    Other(String),
+}
+```
+
+## Platform Support
+
+### Windows
+- Default install path: `C:\Program Files\Pulsar`
+- Creates `.exe` shortcuts
+- Optionally adds to system PATH via registry
+
+### macOS
+- Default install path: `/Applications/Pulsar.app`
+- Creates `.app` bundle
+- Optionally adds to user PATH
+
+### Linux
+- Default install path: `~/.local/share/pulsar`
+- Creates `.desktop` files
+- Optionally adds to `~/.bashrc` or `~/.zshrc`
+
+## Dependencies
+
+Key dependencies:
+- **GPUI**: UI framework
+- **gpui-component**: UI component library
+- **reqwest**: HTTP client for downloads
+- **tokio**: Async runtime
+- **tar**: Archive extraction
+- **sha2**: Checksum verification
+- **serde**: Configuration serialization
 
 ## Development
 
-We have a gallery of applications built with GPUI Component.
+### Running Tests
 
 ```bash
-cargo run
+cargo test -p pulsar-installer
 ```
 
-More examples can be found in the `examples` directory. You can run them with `cargo run --example <example_name>`.
+### Running with Logging
 
-Check out [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
-
-## Compare to others
-
-| Features              | GPUI Component                 | [Iced]             | [egui]                | [Qt 6]                                            |
-| --------------------- | ------------------------------ | ------------------ | --------------------- | ------------------------------------------------- |
-| Language              | Rust                           | Rust               | Rust                  | C++/QML                                           |
-| Core Render           | GPUI                           | wgpu               | wgpu                  | QT                                                |
-| License               | Apache 2.0                     | MIT                | MIT/Apache 2.0        | [Commercial/LGPL](https://www.qt.io/qt-licensing) |
-| Min Binary Size [^1]  | 12MB                           | 11MB               | 5M                    | 20MB [^2]                                         |
-| Cross-Platform        | Yes                            | Yes                | Yes                   | Yes                                               |
-| Documentation         | Simple                         | Simple             | Simple                | Good                                              |
-| Web                   | No                             | Yes                | Yes                   | Yes                                               |
-| UI Style              | Modern                         | Basic              | Basic                 | Basic                                             |
-| CJK Support           | Yes                            | Yes                | Bad                   | Yes                                               |
-| Chart                 | Yes                            | No                 | No                    | Yes                                               |
-| Table (Large dataset) | Yes<br>(Virtual Rows, Columns) | No                 | Yes<br>(Virtual Rows) | Yes<br>(Virtual Rows, Columns)                    |
-| Table Column Resize   | Yes                            | No                 | Yes                   | Yes                                               |
-| Text base             | Rope                           | [COSMIC Text] [^3] | trait TextBuffer [^4] | [QTextDocument]                                   |
-| CodeEditor            | Simple                         | Simple             | Simple                | Basic API                                         |
-| Dock Layout           | Yes                            | Yes                | Yes                   | Yes                                               |
-| Syntax Highlight      | [Tree Sitter]                  | [Syntect]          | [Syntect]             | [QSyntaxHighlighter]                              |
-| Markdown Rendering    | Yes                            | Yes                | Basic                 | No                                                |
-| Markdown mix HTML     | Yes                            | No                 | No                    | No                                                |
-| HTML Rendering        | Basic                          | No                 | No                    | Basic                                             |
-| Text Selection        | TextView                       | No                 | Any Label             | Yes                                               |
-| Custom Theme          | Yes                            | Yes                | Yes                   | Yes                                               |
-| Built Themes          | Yes                            | No                 | No                    | No                                                |
-| I18n                  | Yes                            | Yes                | Yes                   | Yes                                               |
-
-> Please submit an issue or PR if any mistakes or outdated are found.
-
-[Iced]: https://github.com/iced-rs/iced
-[egui]: https://github.com/emilk/egui
-[QT 6]: https://www.qt.io/product/qt6
-[Tree Sitter]: https://tree-sitter.github.io/tree-sitter/
-[Syntect]: https://github.com/trishume/syntect
-[QSyntaxHighlighter]: https://doc.qt.io/qt-6/qsyntaxhighlighter.html
-[QTextDocument]: https://doc.qt.io/qt-6/qtextdocument.html
-[COSMIC Text]: https://github.com/pop-os/cosmic-text
-
-[^1]: Release builds by use simple hello world example.
-
-[^2]: [Reducing Binary Size of Qt Applications](https://www.qt.io/blog/reducing-binary-size-of-qt-applications-part-3-more-platforms)
-
-[^3]: Iced Editor: https://github.com/iced-rs/iced/blob/db5a1f6353b9f8520c4f9633d1cdc90242c2afe1/graphics/src/text/editor.rs#L65-L68
-
-[^4]: egui TextBuffer: https://github.com/emilk/egui/blob/0a81372cfd3a4deda640acdecbbaf24bf78bb6a2/crates/egui/src/widgets/text_edit/text_buffer.rs#L20
+```bash
+RUST_LOG=debug cargo run -p pulsar-installer
+```
 
 ## License
 
-Apache-2.0
+Licensed under the Apache License 2.0. See LICENSE-APACHE for details.
 
-- UI design based on [shadcn/ui](https://ui.shadcn.com).
-- Icons from [Lucide](https://lucide.dev).
+## Contributing
+
+See CONTRIBUTING.md for guidelines on how to contribute to this project.
