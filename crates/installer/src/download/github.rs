@@ -85,9 +85,18 @@ impl GitHubReleases {
 
     /// Get all releases from GitHub.
     pub async fn get_all_releases(&self) -> Result<Vec<GitHubRelease>> {
+        self.get_releases_page(1, 100).await
+    }
+
+    /// Get a specific page of releases from GitHub.
+    ///
+    /// # Arguments
+    /// * `page` - Page number (1-indexed)
+    /// * `per_page` - Number of releases per page (max 100)
+    pub async fn get_releases_page(&self, page: u32, per_page: u32) -> Result<Vec<GitHubRelease>> {
         let url = format!(
-            "https://api.github.com/repos/{}/{}/releases",
-            self.owner, self.repo
+            "https://api.github.com/repos/{}/{}/releases?page={}&per_page={}",
+            self.owner, self.repo, page, per_page
         );
 
         let request = http::Request::builder()

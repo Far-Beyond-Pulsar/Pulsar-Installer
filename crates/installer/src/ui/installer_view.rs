@@ -5,6 +5,7 @@ use gpui::{
 };
 use gpui_component::{
     ActiveTheme,
+    Disableable as _,
     button::{Button, ButtonVariants as _},
     checkbox::Checkbox,
     progress::Progress,
@@ -14,6 +15,8 @@ use gpui_component::{
 use crate::download::{GitHubReleases, HttpDownloadManager, GitHubRelease};
 use crate::traits::{DownloadManager as _,  Progress as ProgressTrait};
 use std::path::PathBuf;
+use gpui_component::Disableable;
+use gpui::prelude::FluentBuilder;
 
 /// Page state for the installer
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,6 +41,9 @@ pub struct InstallerView {
     current_page: Page,
     releases: Vec<ReleaseInfo>,
     loading_releases: bool,
+    loading_more: bool,
+    current_releases_page: u32,
+    has_more_releases: bool,
     install_progress: f32,
     install_message: String,
 }
@@ -53,6 +59,9 @@ impl InstallerView {
             current_page: Page::Welcome,
             releases: Vec::new(),
             loading_releases: false,
+            loading_more: false,
+            current_releases_page: 0,
+            has_more_releases: true,
             install_progress: 0.0,
             install_message: String::new(),
         }
@@ -65,14 +74,17 @@ impl InstallerView {
 
     fn fetch_releases(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         self.loading_releases = true;
+        self.current_releases_page = 1;
+        self.releases.clear();
         cx.notify();
 
-        // Spawn async task to fetch releases
+        // Spawn async task to fetch first page of releases
         cx.spawn(async move |this, cx| {
             let github = GitHubReleases::new("Far-Beyond-Pulsar", "Pulsar-Native");
 
-            match github.get_all_releases().await {
+            match github.get_releases_page(1, 30).await {
                 Ok(releases) => {
+                    let has_more = releases.len() >= 30;
                     let release_infos: Vec<ReleaseInfo> = releases
                         .into_iter()
                         .map(|r| ReleaseInfo {
@@ -85,6 +97,7 @@ impl InstallerView {
                     this.update(cx, |this, cx| {
                         this.releases = release_infos;
                         this.loading_releases = false;
+                        this.has_more_releases = has_more;
                         cx.notify();
                     })
                     .ok();
@@ -93,6 +106,54 @@ impl InstallerView {
                     tracing::error!("Failed to fetch releases: {}", e);
                     this.update(cx, |this, cx| {
                         this.loading_releases = false;
+                        cx.notify();
+                    })
+                    .ok();
+                }
+            }
+        })
+        .detach();
+    }
+
+    fn load_more_releases(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
+        if self.loading_more || !self.has_more_releases {
+            return;
+        }
+
+        self.loading_more = true;
+        self.current_releases_page += 1;
+        let page = self.current_releases_page;
+        cx.notify();
+
+        // Spawn async task to fetch next page of releases
+        cx.spawn(async move |this, cx| {
+            let github = GitHubReleases::new("Far-Beyond-Pulsar", "Pulsar-Native");
+
+            match github.get_releases_page(page, 30).await {
+                Ok(releases) => {
+                    let has_more = releases.len() >= 30;
+                    let release_infos: Vec<ReleaseInfo> = releases
+                        .into_iter()
+                        .map(|r| ReleaseInfo {
+                            tag_name: r.tag_name.clone(),
+                            name: r.name.clone(),
+                            selected: false,
+                        })
+                        .collect();
+
+                    this.update(cx, |this, cx| {
+                        this.releases.extend(release_infos);
+                        this.loading_more = false;
+                        this.has_more_releases = has_more;
+                        cx.notify();
+                    })
+                    .ok();
+                }
+                Err(e) => {
+                    tracing::error!("Failed to fetch more releases: {}", e);
+                    this.update(cx, |this, cx| {
+                        this.loading_more = false;
+                        this.current_releases_page -= 1; // Revert page increment
                         cx.notify();
                     })
                     .ok();
@@ -396,6 +457,23 @@ impl InstallerView {
                                             )
                                     }),
                             )
+                            .when(self.has_more_releases || self.loading_more, |this| {
+                                this.child(
+                                    div()
+                                        .p_3()
+                                        .flex()
+                                        .justify_center()
+                                        .child(
+                                            Button::new("load-more-btn")
+                                                .outline()
+                                                .label(if self.loading_more { "Loading..." } else { "Load More" })
+                                                .disabled(self.loading_more)
+                                                .on_click(cx.listener(|this, _, window, cx| {
+                                                    this.load_more_releases(window, cx);
+                                                }))
+                                        )
+                                )
+                            })
                             .into_any_element()
                     })
             )
