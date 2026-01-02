@@ -211,65 +211,113 @@ impl InstallerView {
                 return;
             }
 
-            for (idx, selected_release) in selected_releases.iter().enumerate() {
-                let release_num = idx + 1;
+            // Get full release details and calculate total size
+            let mut releases_with_assets = Vec::new();
+            let mut total_size = 0u64;
 
-                // Update status
-                this.update(cx, |this, cx| {
-                    this.install_message = format!(
-                        "Downloading release {} of {}: {}",
-                        release_num, total_releases, selected_release.name
-                    );
-                    cx.notify();
-                })
-                .ok();
-
-                // Get full release details
-                let full_release = match github.get_all_releases().await {
-                    Ok(releases) => releases.into_iter()
-                        .find(|r| r.tag_name == selected_release.tag_name),
+            for selected_release in &selected_releases {
+                match github.get_all_releases().await {
+                    Ok(releases) => {
+                        if let Some(full_release) = releases.into_iter().find(|r| r.tag_name == selected_release.tag_name) {
+                            if let Some(asset) = full_release.assets.first() {
+                                total_size += asset.size;
+                                releases_with_assets.push((full_release, asset.clone()));
+                            }
+                        }
+                    }
                     Err(e) => {
                         this.update(cx, |this, cx| {
                             this.install_message = format!("Failed to fetch release details: {}", e);
                             cx.notify();
                         })
                         .ok();
-                        continue;
+                        return;
                     }
-                };
+                }
+            }
 
-                if let Some(release) = full_release {
-                    // Find platform-appropriate asset
-                    if let Some(asset) = release.assets.first() {
-                        let file_path = download_dir.join(&asset.name);
+            let mut downloaded_bytes = 0u64;
 
-                        // Download the asset
-                        let url = asset.browser_download_url.clone();
-                        let result = download_manager
-                            .download(&url, &file_path, Box::new(move |progress| {
-                                // Progress callback - could update UI here
-                            }))
-                            .await;
+            for (idx, (release, asset)) in releases_with_assets.iter().enumerate() {
+                let release_num = idx + 1;
+                let release_name = release.name.clone();
+                let asset_name = asset.name.clone();
 
-                        match result {
-                            Ok(_) => {
-                                let base_progress = (idx as f32 / total_releases as f32) * 100.0;
+                // Update status
+                this.update(cx, |this, cx| {
+                    this.install_message = format!(
+                        "Downloading {} of {}: {}",
+                        release_num, releases_with_assets.len(), release_name
+                    );
+                    cx.notify();
+                })
+                .ok();
+
+                let file_path = download_dir.join(&asset.name);
+                let url = asset.browser_download_url.clone();
+                let base_downloaded = downloaded_bytes;
+
+                // Download with progress tracking
+                let result = download_manager
+                    .download(&url, &file_path, Box::new(move |prog| {
+                        let current_bytes = base_downloaded + prog.processed_bytes;
+                        let overall_progress = if total_size > 0 {
+                            (current_bytes as f32 / total_size as f32) * 100.0
+                        } else {
+                            0.0
+                        };
+
+                        // Update UI with current progress
+                        this.update(cx, |this, cx| {
+                            this.install_progress = overall_progress;
+                            this.install_message = format!(
+                                "Downloading {} ({:.1}%)",
+                                asset_name,
+                                prog.percent
+                            );
+                            cx.notify();
+                        })
+                        .ok();
+                    }))
+                    .await;
+
+                match result {
+                    Ok(_) => {
+                        downloaded_bytes += asset.size;
+
+                        // Install the downloaded file
+                        this.update(cx, |this, cx| {
+                            this.install_message = format!("Installing {}...", release_name);
+                            cx.notify();
+                        })
+                        .ok();
+
+                        let install_result = Self::install_release(&file_path, &release.tag_name).await;
+
+                        match install_result {
+                            Ok(_install_path) => {
                                 this.update(cx, |this, cx| {
-                                    this.install_progress = base_progress + (100.0 / total_releases as f32);
-                                    this.install_message = format!("Downloaded: {}", asset.name);
+                                    this.install_message = format!("Installed: {}", release_name);
                                     cx.notify();
                                 })
                                 .ok();
                             }
                             Err(e) => {
                                 this.update(cx, |this, cx| {
-                                    this.install_message = format!("Download failed: {}", e);
+                                    this.install_message = format!("Installation failed for {}: {}", release_name, e);
                                     cx.notify();
                                 })
                                 .ok();
-                                continue;
                             }
                         }
+                    }
+                    Err(e) => {
+                        this.update(cx, |this, cx| {
+                            this.install_message = format!("Download failed: {}", e);
+                            cx.notify();
+                        })
+                        .ok();
+                        continue;
                     }
                 }
             }
@@ -283,6 +331,111 @@ impl InstallerView {
             .ok();
         })
         .detach();
+    }
+
+    async fn install_release(archive_path: &PathBuf, version: &str) -> crate::error::Result<PathBuf> {
+        use std::fs;
+
+        // Determine installation directory
+        let install_base = if cfg!(windows) {
+            PathBuf::from("C:\\Program Files\\Pulsar")
+        } else if cfg!(target_os = "macos") {
+            PathBuf::from("/Applications/Pulsar")
+        } else {
+            dirs::home_dir()
+                .ok_or_else(|| crate::error::InstallerError::Other("Could not determine home directory".to_string()))?
+                .join(".local/share/pulsar")
+        };
+
+        let install_dir = install_base.join(version);
+        fs::create_dir_all(&install_dir)
+            .map_err(|e| crate::error::InstallerError::Io(e))?;
+
+        // Extract archive
+        let file = fs::File::open(archive_path)
+            .map_err(|e| crate::error::InstallerError::Io(e))?;
+
+        if archive_path.extension().and_then(|s| s.to_str()) == Some("exe") {
+            // Windows executable - just copy it
+            let dest = install_dir.join(archive_path.file_name().unwrap());
+            fs::copy(archive_path, &dest)
+                .map_err(|e| crate::error::InstallerError::Io(e))?;
+        } else if archive_path.to_str().map(|s| s.ends_with(".tar.gz")).unwrap_or(false) {
+            // Extract tar.gz archive
+            let tar = flate2::read::GzDecoder::new(file);
+            let mut archive = tar::Archive::new(tar);
+            archive.unpack(&install_dir)
+                .map_err(|e| crate::error::InstallerError::Io(e))?;
+        } else if archive_path.extension().and_then(|s| s.to_str()) == Some("zip") {
+            // Extract zip archive
+            let mut archive = zip::ZipArchive::new(file)
+                .map_err(|e| crate::error::InstallerError::Other(e.to_string()))?;
+
+            for i in 0..archive.len() {
+                let mut file = archive.by_index(i)
+                    .map_err(|e| crate::error::InstallerError::Other(e.to_string()))?;
+                let outpath = install_dir.join(file.mangled_name());
+
+                if file.name().ends_with('/') {
+                    fs::create_dir_all(&outpath)
+                        .map_err(|e| crate::error::InstallerError::Io(e))?;
+                } else {
+                    if let Some(p) = outpath.parent() {
+                        fs::create_dir_all(p)
+                            .map_err(|e| crate::error::InstallerError::Io(e))?;
+                    }
+                    let mut outfile = fs::File::create(&outpath)
+                        .map_err(|e| crate::error::InstallerError::Io(e))?;
+                    std::io::copy(&mut file, &mut outfile)
+                        .map_err(|e| crate::error::InstallerError::Io(e))?;
+                }
+            }
+        }
+
+        // Create start menu shortcut on Windows
+        #[cfg(windows)]
+        {
+            Self::create_windows_shortcut(&install_dir, version)?;
+        }
+
+        Ok(install_dir)
+    }
+
+    #[cfg(windows)]
+    fn create_windows_shortcut(install_dir: &PathBuf, version: &str) -> crate::error::Result<()> {
+        use std::fs;
+        use std::io::Write;
+
+        // Find the main executable
+        let exe_path = std::fs::read_dir(install_dir)
+            .map_err(|e| crate::error::InstallerError::Io(e))?
+            .filter_map(|entry| entry.ok())
+            .find(|entry| {
+                entry.path().extension().and_then(|s| s.to_str()) == Some("exe")
+            })
+            .map(|entry| entry.path());
+
+        if let Some(exe_path) = exe_path {
+            // Create start menu shortcut directory
+            let start_menu = dirs::data_dir()
+                .ok_or_else(|| crate::error::InstallerError::Other("Could not find start menu".to_string()))?
+                .join("Microsoft\\Windows\\Start Menu\\Programs\\Pulsar");
+
+            fs::create_dir_all(&start_menu)
+                .map_err(|e| crate::error::InstallerError::Io(e))?;
+
+            // Create a simple .bat file as a launcher (proper .lnk would require winapi)
+            let shortcut_path = start_menu.join(format!("Pulsar {}.bat", version));
+            let mut file = fs::File::create(&shortcut_path)
+                .map_err(|e| crate::error::InstallerError::Io(e))?;
+
+            writeln!(file, "@echo off")
+                .map_err(|e| crate::error::InstallerError::Io(e))?;
+            writeln!(file, "start \"\" \"{}\"", exe_path.display())
+                .map_err(|e| crate::error::InstallerError::Io(e))?;
+        }
+
+        Ok(())
     }
 }
 
