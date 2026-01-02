@@ -1,5 +1,3 @@
-//! Main installer view following Story crate patterns.
-
 use gpui::{
     App, AppContext, Context, Entity, Focusable, IntoElement, ParentElement, Render, Styled,
     Window, div, px,
