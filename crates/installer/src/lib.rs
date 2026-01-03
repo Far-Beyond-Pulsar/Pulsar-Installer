@@ -43,15 +43,12 @@
 //! - Follows freedesktop.org specifications
 
 pub mod traits;
-pub mod steps;
 pub mod platform;
 pub mod download;
 pub mod config;
 pub mod ui;
 pub mod error;
-pub mod uninstaller;
 
 pub use traits::*;
 pub use config::InstallerConfig;
 pub use error::{InstallerError, Result};
-pub use uninstaller::Uninstaller;
