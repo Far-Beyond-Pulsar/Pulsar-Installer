@@ -123,7 +123,10 @@ impl WindowsInstaller {
         // Files should already be copied by extract step
         // We focus on OS-specific registration here
         
-        progress(Progress::new(30.0).with_message("Creating Start Menu shortcut..."));
+        progress(Progress::new(20.0).with_message("Creating uninstaller..."));
+        self.create_uninstaller()?;
+        
+        progress(Progress::new(40.0).with_message("Creating Start Menu shortcut..."));
         self.create_start_menu_shortcut()?;
 
         progress(Progress::new(60.0).with_message("Registering in Add/Remove Programs..."));
@@ -134,6 +137,43 @@ impl WindowsInstaller {
 
         progress(Progress::new(100.0).with_message("Windows installation complete"));
 
+        Ok(())
+    }
+
+    /// Create uninstaller executable.
+    /// 
+    /// Creates an uninstall.bat that removes the installation.
+    fn create_uninstaller(&self) -> Result<()> {
+        let uninstaller_path = self.install_path.join("uninstall.bat");
+        
+        // Create a batch script that performs uninstallation
+        // Note: No confirmation prompt - Add/Remove Programs already confirms
+        let batch_script = format!(r#"@echo off
+echo Pulsar Uninstaller
+echo ==================
+echo.
+echo Removing Start Menu shortcut...
+del /f /q "{}" 2>nul
+
+echo Removing registry entries...
+reg delete "HKCU\{}" /f 2>nul
+
+echo Removing files...
+cd /d "%LOCALAPPDATA%\Programs"
+timeout /t 1 /nobreak >nul
+rd /s /q "Pulsar" 2>nul
+
+echo.
+echo Uninstallation complete!
+"#,
+            WindowsDetector::get_start_menu_dir().join(format!("{}.lnk", APP_NAME)).display(),
+            UNINSTALL_REGISTRY_KEY
+        );
+        
+        fs::write(&uninstaller_path, batch_script)?;
+        
+        tracing::info!("Created uninstaller at: {}", uninstaller_path.display());
+        
         Ok(())
     }
 
@@ -182,14 +222,13 @@ impl WindowsInstaller {
         let (key, _) = hkcu.create_subkey(UNINSTALL_REGISTRY_KEY)?;
 
         let exe_path = self.install_path.join("pulsar.exe");
-        let uninstall_path = self.install_path.join("uninstall.exe");
 
         // Required registry values for Add/Remove Programs
         key.set_value("DisplayName", &APP_NAME)?;
         key.set_value("DisplayVersion", &self.version)?;
         key.set_value("Publisher", &PUBLISHER)?;
         key.set_value("InstallLocation", &self.install_path.to_string_lossy().as_ref())?;
-        key.set_value("UninstallString", &format!("\"{}\"", uninstall_path.display()))?;
+        key.set_value("UninstallString", &format!("\"{}\"", self.install_path.join("uninstall.bat").display()))?;
         key.set_value("DisplayIcon", &exe_path.to_string_lossy().as_ref())?;
         key.set_value("NoModify", &1u32)?;
         key.set_value("NoRepair", &1u32)?;
