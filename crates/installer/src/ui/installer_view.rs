@@ -517,7 +517,7 @@ impl InstallerView {
             let installer = LinuxInstaller::new(version.to_string(), false);
             let source_binary = install_dir.join("pulsar");
             let progress: ProgressCallback = Box::new(|p: Progress| {
-                tracing::info!("[{}%] {}", p.message.unwrap_or(""));
+                tracing::info!("[{}%] {}", p.current, p.message.unwrap_or(""));
             });
             installer.install(&source_binary, progress).await?;
         }

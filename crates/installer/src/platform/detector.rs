@@ -40,7 +40,7 @@ impl PlatformDetector {
     }
 
     /// Get available disk space at path.
-    pub async fn get_available_space_impl(_path: &Path) -> Result<u64> {
+    pub async fn get_available_space_impl(path: &Path) -> Result<u64> {
         // This is a simplified version - real implementation would use platform-specific APIs
         #[cfg(unix)]
         {

@@ -6,6 +6,8 @@
 //! - Add/Remove Programs (ARP) registry entries
 //! - Proper uninstall metadata
 
+#![cfg(windows)]
+
 use crate::error::{InstallerError, Result};
 use crate::platform::detector::PlatformDetector;
 use crate::traits::{SystemDetector, SystemRequirements, ProgressCallback, Progress};

@@ -6,14 +6,14 @@
 //! - Icon installation to ~/.local/share/icons/hicolor/<size>/apps/
 //! - Relies on desktop environment indexing (no manual cache manipulation)
 
+#![cfg(target_os = "linux")]
+
 use crate::error::Result;
 use crate::platform::detector::PlatformDetector;
 use crate::traits::{SystemDetector, SystemRequirements, ProgressCallback, Progress};
 use async_trait::async_trait;
 use std::path::{Path, PathBuf};
 use std::fs;
-
-#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
 const APP_NAME: &str = "Pulsar";
@@ -175,12 +175,9 @@ impl LinuxInstaller {
         fs::copy(source_binary, &self.binary_path)?;
 
         // Make executable (chmod +x)
-        #[cfg(unix)]
-        {
-            let mut perms = fs::metadata(&self.binary_path)?.permissions();
-            perms.set_mode(0o755); // rwxr-xr-x
-            fs::set_permissions(&self.binary_path, perms)?;
-        }
+        let mut perms = fs::metadata(&self.binary_path)?.permissions();
+        perms.set_mode(0o755); // rwxr-xr-x
+        fs::set_permissions(&self.binary_path, perms)?;
 
         Ok(())
     }

@@ -6,14 +6,14 @@
 //! - System install option to /Applications/<AppName>.app
 //! - Relies on Launch Services for registration (no manual database manipulation)
 
+#![cfg(target_os = "macos")]
+
 use crate::error::{InstallerError, Result};
 use crate::platform::detector::PlatformDetector;
 use crate::traits::{SystemDetector, SystemRequirements, ProgressCallback, Progress};
 use async_trait::async_trait;
 use std::path::{Path, PathBuf};
 use std::fs;
-
-#[cfg(target_os = "macos")]
 use plist::Value;
 
 const APP_NAME: &str = "Pulsar";
@@ -163,7 +163,6 @@ impl MacOSInstaller {
     /// Create Info.plist with required metadata.
     /// 
     /// This is critical for Launch Services to recognize the app.
-    #[cfg(target_os = "macos")]
     fn create_info_plist(&self) -> Result<()> {
         let plist_path = self.app_bundle_path.join("Contents").join("Info.plist");
 
@@ -186,12 +185,6 @@ impl MacOSInstaller {
         let value = Value::Dictionary(dict);
         value.to_file_xml(&plist_path)?;
 
-        Ok(())
-    }
-
-    /// Stub for non-macOS platforms
-    #[cfg(not(target_os = "macos"))]
-    fn create_info_plist(&self) -> Result<()> {
         Ok(())
     }
 
