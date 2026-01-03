@@ -1,8 +1,0 @@
-cargo::rustc-check-cfg=cfg(gles)
-cargo:rerun-if-changed=resources/windows/gpui.manifest.xml
-cargo:rerun-if-changed=resources/windows/gpui.rc
-Microsoft (R) Windows (R) Resource Compiler Version 10.0.10011.16384
-Copyright (C) Microsoft Corporation.  All rights reserved.
-
-cargo:rustc-link-search=native=C:\Users\redst\OneDrive\Documents\GitHub\Pulsar-Installer\target\debug\build\gpui-48a9805aa6d39a48\out
-cargo:rustc-link-lib=dylib=gpui
