@@ -212,13 +212,46 @@ impl InstallerView {
             let mut releases_with_assets = Vec::new();
             let mut total_size = 0u64;
 
+            // Detect system architecture
+            let system_arch = std::env::consts::ARCH;
+            tracing::info!("System architecture: {}", system_arch);
+
             for selected_release in &selected_releases {
                 match github.get_all_releases().await {
                     Ok(releases) => {
                         if let Some(full_release) = releases.into_iter().find(|r| r.tag_name == selected_release.tag_name) {
-                            if let Some(asset) = full_release.assets.first().cloned() {
+                            // Find the correct asset for this architecture
+                            let asset = full_release.assets.iter().find(|asset| {
+                                let name_lower = asset.name.to_lowercase();
+                                
+                                // Match architecture
+                                let arch_match = match system_arch {
+                                    "x86_64" => {
+                                        // x64 can be: x86_64, x64, amd64, win-x64, windows-x64
+                                        name_lower.contains("x86_64") || 
+                                        name_lower.contains("x64") || 
+                                        name_lower.contains("amd64") ||
+                                        (name_lower.contains("windows") && !name_lower.contains("arm"))
+                                    },
+                                    "aarch64" => {
+                                        // ARM64 can be: aarch64, arm64, win-arm64
+                                        name_lower.contains("aarch64") || 
+                                        name_lower.contains("arm64") ||
+                                        name_lower.contains("arm")
+                                    },
+                                    _ => false,
+                                };
+
+                                arch_match
+                            }).cloned();
+
+                            if let Some(asset) = asset {
+                                tracing::info!("Selected asset: {} for architecture: {}", asset.name, system_arch);
                                 total_size += asset.size;
                                 releases_with_assets.push((full_release, asset));
+                            } else {
+                                tracing::warn!("No matching asset found for architecture: {} in release: {}", 
+                                    system_arch, full_release.tag_name);
                             }
                         }
                     }
@@ -370,36 +403,54 @@ impl InstallerView {
     async fn install_release(archive_path: &PathBuf, version: &str) -> crate::error::Result<PathBuf> {
         use std::fs;
 
-        // Determine installation directory
-        let install_base = if cfg!(windows) {
-            PathBuf::from("C:\\Program Files\\Pulsar")
-        } else if cfg!(target_os = "macos") {
-            PathBuf::from("/Applications/Pulsar")
-        } else {
-            dirs::home_dir()
-                .ok_or_else(|| crate::error::InstallerError::Other("Could not determine home directory".to_string()))?
-                .join(".local/share/pulsar")
+        // Determine installation directory using platform-specific defaults
+        #[cfg(windows)]
+        let install_dir = {
+            PathBuf::from(std::env::var("LOCALAPPDATA").unwrap_or_else(|_| "C:\\Users\\Default\\AppData\\Local".to_string()))
+                .join("Programs")
+                .join("Pulsar")
         };
 
-        let install_dir = install_base.join(version);
+        #[cfg(target_os = "macos")]
+        let install_dir = {
+            dirs::home_dir()
+                .unwrap_or_else(|| PathBuf::from("/Users/Default"))
+                .join("Applications")
+                .join("Pulsar.app")
+        };
+
+        #[cfg(target_os = "linux")]
+        let install_dir = {
+            dirs::home_dir()
+                .unwrap_or_else(|| PathBuf::from("/home/default"))
+                .join(".local")
+                .join("share")
+                .join("pulsar")
+                .join(version)
+        };
+
         fs::create_dir_all(&install_dir)
             .map_err(|e| crate::error::InstallerError::Io(e))?;
+
+        tracing::info!("Installing to: {}", install_dir.display());
 
         // Extract archive
         let file = fs::File::open(archive_path)
             .map_err(|e| crate::error::InstallerError::Io(e))?;
 
         if archive_path.extension().and_then(|s| s.to_str()) == Some("exe") {
-            // Windows executable - just copy it
-            let dest = install_dir.join(archive_path.file_name().unwrap());
+            // Windows executable - copy to install directory
+            let dest = install_dir.join("pulsar.exe");
             fs::copy(archive_path, &dest)
                 .map_err(|e| crate::error::InstallerError::Io(e))?;
+            tracing::info!("Copied executable to: {}", dest.display());
         } else if archive_path.to_str().map(|s| s.ends_with(".tar.gz")).unwrap_or(false) {
             // Extract tar.gz archive
             let tar = flate2::read::GzDecoder::new(file);
             let mut archive = tar::Archive::new(tar);
             archive.unpack(&install_dir)
                 .map_err(|e| crate::error::InstallerError::Io(e))?;
+            tracing::info!("Extracted tar.gz to: {}", install_dir.display());
         } else if archive_path.extension().and_then(|s| s.to_str()) == Some("zip") {
             // Extract zip archive
             let mut archive = zip::ZipArchive::new(file)
@@ -424,61 +475,54 @@ impl InstallerView {
                         .map_err(|e| crate::error::InstallerError::Io(e))?;
                 }
             }
+            tracing::info!("Extracted zip to: {}", install_dir.display());
         }
 
-        // Create start menu shortcut on Windows
+        // Perform OS-specific installation (registry, shortcuts, app bundles, desktop entries)
         #[cfg(windows)]
         {
-            Self::create_windows_shortcut(&install_dir, version)?;
+            use crate::platform::WindowsInstaller;
+            use crate::traits::{Progress, ProgressCallback};
+            
+            tracing::info!("Running Windows-specific installation...");
+            let installer = WindowsInstaller::new(install_dir.clone(), version.to_string());
+            let progress: ProgressCallback = Box::new(|p: Progress| {
+                tracing::info!("[{}%] {}", p.current, p.message.unwrap_or(""));
+            });
+            installer.install(progress).await?;
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            use crate::platform::MacOSInstaller;
+            use crate::traits::{Progress, ProgressCallback};
+            
+            tracing::info!("Running macOS-specific installation...");
+            let binary_name = "pulsar".to_string();
+            let source_binary = install_dir.join("Contents").join("MacOS").join(&binary_name);
+            
+            let installer = MacOSInstaller::new(install_dir.clone(), version.to_string(), binary_name);
+            let progress: ProgressCallback = Box::new(|p: Progress| {
+                tracing::info!("[{}%] {}", p.current, p.message.unwrap_or(""));
+            });
+            installer.install(&source_binary, progress).await?;
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            use crate::platform::LinuxInstaller;
+            use crate::traits::{Progress, ProgressCallback};
+            
+            tracing::info!("Running Linux-specific installation...");
+            let installer = LinuxInstaller::new(version.to_string(), false);
+            let source_binary = install_dir.join("pulsar");
+            let progress: ProgressCallback = Box::new(|p: Progress| {
+                tracing::info!("[{}%] {}", p.message.unwrap_or(""));
+            });
+            installer.install(&source_binary, progress).await?;
         }
 
         Ok(install_dir)
-    }
-
-    #[cfg(windows)]
-    fn create_windows_shortcut(install_dir: &PathBuf, version: &str) -> crate::error::Result<()> {
-        use std::fs;
-        use walkdir::WalkDir;
-
-        // Find the main executable (search recursively)
-        let exe_path = WalkDir::new(install_dir)
-            .max_depth(3)
-            .into_iter()
-            .filter_map(|entry| entry.ok())
-            .find(|entry| {
-                entry.path().extension().and_then(|s| s.to_str()) == Some("exe")
-                    && entry.file_type().is_file()
-            })
-            .map(|entry| entry.path().to_path_buf());
-
-        if let Some(exe_path) = exe_path {
-            tracing::info!("Found executable at: {}", exe_path.display());
-
-            // Create start menu shortcut directory
-            let start_menu = dirs::data_dir()
-                .ok_or_else(|| crate::error::InstallerError::Other("Could not find start menu".to_string()))?
-                .join("Microsoft\\Windows\\Start Menu\\Programs\\Pulsar");
-
-            fs::create_dir_all(&start_menu)
-                .map_err(|e| crate::error::InstallerError::Io(e))?;
-
-            tracing::info!("Creating shortcut in: {}", start_menu.display());
-
-            // Create a proper Windows .lnk shortcut
-            let shortcut_path = start_menu.join(format!("Pulsar {}.lnk", version));
-
-            let shortcut = mslnk::ShellLink::new(&exe_path)
-                .map_err(|e| crate::error::InstallerError::Other(format!("Failed to create shortcut: {}", e)))?;
-
-            shortcut.create_lnk(&shortcut_path)
-                .map_err(|e| crate::error::InstallerError::Other(format!("Failed to save shortcut: {}", e)))?;
-
-            tracing::info!("Created shortcut at: {}", shortcut_path.display());
-        } else {
-            tracing::warn!("No executable found in: {}", install_dir.display());
-        }
-
-        Ok(())
     }
 }
 

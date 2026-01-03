@@ -39,6 +39,9 @@ pub enum InstallerError {
     /// Platform not supported
     UnsupportedPlatform(String),
 
+    /// Platform-specific operation failed
+    Platform(String),
+
     /// JSON error
     Json(String),
 
@@ -64,6 +67,7 @@ impl std::fmt::Display for InstallerError {
             }
             Self::Config(s) => write!(f, "Configuration error: {}", s),
             Self::UnsupportedPlatform(s) => write!(f, "Platform not supported: {}", s),
+            Self::Platform(s) => write!(f, "Platform error: {}", s),
             Self::Json(s) => write!(f, "JSON error: {}", s),
             Self::Other(s) => write!(f, "{}", s),
         }
@@ -81,5 +85,12 @@ impl From<std::io::Error> for InstallerError {
 impl From<serde_json::Error> for InstallerError {
     fn from(e: serde_json::Error) -> Self {
         Self::Json(e.to_string())
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl From<plist::Error> for InstallerError {
+    fn from(e: plist::Error) -> Self {
+        Self::Platform(format!("plist error: {}", e))
     }
 }

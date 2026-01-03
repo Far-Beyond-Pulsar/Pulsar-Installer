@@ -1,6 +1,9 @@
 //! Installation finalization step.
+//!
+//! This step performs final cleanup and metadata writing.
+//! Does NOT modify shell profiles or PATH - that's optional and separate.
 
-use crate::traits::{InstallStep, ProgressCallback};
+use crate::traits::{InstallStep, ProgressCallback, Progress};
 use crate::Result;
 use async_trait::async_trait;
 use std::path::PathBuf;
@@ -8,40 +11,63 @@ use std::path::PathBuf;
 /// Installation step that performs final setup tasks.
 pub struct FinalizeStep {
     install_path: PathBuf,
-    add_to_path: bool,
 }
 
 impl FinalizeStep {
     /// Create a new finalization step.
-    pub fn new(install_path: PathBuf, add_to_path: bool) -> Self {
+    pub fn new(install_path: PathBuf) -> Self {
         Self {
             install_path,
-            add_to_path,
         }
     }
 
-    #[cfg(windows)]
-    fn add_to_windows_path(&self) -> Result<()> {
-        // Add to Windows PATH using registry
-        // This is a placeholder - real implementation would use winreg crate
-        Ok(())
-    }
-
-    #[cfg(not(windows))]
-    fn add_to_unix_path(&self) -> Result<()> {
-        // Add to shell profile (~/.bashrc, ~/.zshrc, etc.)
-        // This is a placeholder
-        Ok(())
-    }
-
+    /// Write installation completion metadata.
     fn write_installation_info(&self) -> Result<()> {
         let info_path = self.install_path.join("install_info.json");
         let info = serde_json::json!({
             "version": "1.0.0",
             "install_date": chrono::Utc::now().to_rfc3339(),
             "install_path": self.install_path,
+            "platform": std::env::consts::OS,
+            "architecture": std::env::consts::ARCH,
         });
         std::fs::write(info_path, serde_json::to_string_pretty(&info)?)?;
+        Ok(())
+    }
+
+    /// Verify installation integrity.
+    fn verify_installation(&self) -> Result<()> {
+        // Check that install directory exists
+        if !self.install_path.exists() {
+            return Err(crate::error::InstallerError::InvalidPath(self.install_path.clone()));
+        }
+
+        // Platform-specific verification
+        #[cfg(windows)]
+        {
+            let exe = self.install_path.join("pulsar.exe");
+            if !exe.exists() {
+                return Err(crate::error::InstallerError::InvalidPath(exe));
+            }
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            let contents = self.install_path.join("Contents");
+            if !contents.exists() {
+                return Err(crate::error::InstallerError::InvalidPath(contents));
+            }
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            // For Linux, install_path might be the binary itself or a directory
+            // Just check it exists
+            if !self.install_path.exists() {
+                return Err(crate::error::InstallerError::InvalidPath(self.install_path.clone()));
+            }
+        }
+
         Ok(())
     }
 }
@@ -53,28 +79,19 @@ impl InstallStep for FinalizeStep {
     }
 
     fn description(&self) -> &str {
-        "Completing installation and configuring system"
+        "Completing installation and verifying integrity"
     }
 
     async fn execute(&self, progress: ProgressCallback) -> Result<()> {
-        progress(crate::traits::Progress::new(0.0).with_message("Finalizing installation..."));
+        progress(Progress::new(0.0).with_message("Finalizing installation..."));
 
-        // Write installation info
+        progress(Progress::new(33.0).with_message("Verifying installation..."));
+        self.verify_installation()?;
+
+        progress(Progress::new(66.0).with_message("Writing metadata..."));
         self.write_installation_info()?;
-        progress(crate::traits::Progress::new(33.0));
 
-        // Add to PATH if requested
-        if self.add_to_path {
-            #[cfg(windows)]
-            self.add_to_windows_path()?;
-
-            #[cfg(not(windows))]
-            self.add_to_unix_path()?;
-
-            progress(crate::traits::Progress::new(66.0));
-        }
-
-        progress(crate::traits::Progress::new(100.0).with_message("Installation complete!"));
+        progress(Progress::new(100.0).with_message("Installation complete!"));
 
         Ok(())
     }

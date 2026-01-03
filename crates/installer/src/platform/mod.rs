@@ -7,6 +7,15 @@ mod linux;
 
 pub use detector::PlatformDetector;
 
+#[cfg(windows)]
+pub use windows::{WindowsDetector, WindowsInstaller};
+
+#[cfg(target_os = "macos")]
+pub use macos::{MacOSDetector, MacOSInstaller};
+
+#[cfg(target_os = "linux")]
+pub use linux::{LinuxDetector, LinuxInstaller};
+
 use crate::traits::SystemDetector;
 use std::sync::Arc;
 

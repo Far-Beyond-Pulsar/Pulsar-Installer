@@ -11,6 +11,7 @@
 //! - **Async Operations**: Non-blocking downloads and installation
 //! - **Verification**: Checksum validation for downloaded files
 //! - **Rollback Support**: Automatic cleanup on installation failure
+//! - **OS-Native Installation**: Follows platform conventions for each OS
 //!
 //! ## Architecture
 //!
@@ -21,6 +22,25 @@
 //! - [`DownloadManager`]: Handles file downloads with progress tracking
 //! - [`ComponentInstaller`]: Installs individual components
 //! - [`ConfigManager`]: Manages installation configuration
+//!
+//! ## Platform-Specific Installation
+//!
+//! ### Windows
+//! - Install location: `%LOCALAPPDATA%\Programs\Pulsar`
+//! - Start Menu shortcut creation
+//! - Add/Remove Programs registration via registry
+//! - Proper uninstall metadata
+//!
+//! ### macOS
+//! - Creates valid .app bundle with Info.plist
+//! - Install location: `~/Applications/Pulsar.app` (user) or `/Applications/Pulsar.app` (system)
+//! - Launch Services handles registration automatically
+//!
+//! ### Linux
+//! - Binary: `~/.local/bin/pulsar` (user) or `/usr/bin/pulsar` (system)
+//! - Desktop entry: `~/.local/share/applications/pulsar.desktop`
+//! - Icons: `~/.local/share/icons/hicolor/<size>/apps/`
+//! - Follows freedesktop.org specifications
 
 pub mod traits;
 pub mod steps;
@@ -29,7 +49,9 @@ pub mod download;
 pub mod config;
 pub mod ui;
 pub mod error;
+pub mod uninstaller;
 
 pub use traits::*;
 pub use config::InstallerConfig;
 pub use error::{InstallerError, Result};
+pub use uninstaller::Uninstaller;
